@@ -1,0 +1,10 @@
+<app-background-geometry></app-background-geometry>
+
+<main class="p-8 pt-24 min-h-screen relative z-10">
+  <router-outlet></router-outlet>
+</main>
+@if(!esRutaLogin()){
+  <app-topbar></app-topbar>
+  <app-sidebar></app-sidebar>
+}
+

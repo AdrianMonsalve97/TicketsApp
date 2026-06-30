@@ -1,0 +1,79 @@
+<div class="w-full overflow-x-auto bg-transparent backdrop-blur-md rounded-2xl border border-white/5">
+  <table class="w-full border-collapse text-left text-xs text-slate-300">
+    <thead class="bg-transparent text-[10px] font-mono uppercase tracking-wider text-slate-400 border-b border-white/5">
+    <tr>
+      <th class="p-4 w-10 text-center">Alertas</th>
+      @for (col of columns; track col.key) {
+        <th class="p-4 font-bold">{{ col.label }}</th>
+      }
+      <th class="p-4 text-center w-32 font-bold uppercase tracking-wider">ACCIONES</th>
+    </tr>
+    </thead>
+    <tbody class="divide-y divide-transparent font-sans">
+      @for (row of data; track row.idTicket) {
+        <tr class="hover:bg-white/[0.01] transition-colors group">
+
+          <td class="p-4 text-center">
+            @if (tieneFugaInformacion(row)) {
+              <div class="relative inline-block group/tooltip cursor-help">
+                <span class="flex h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_10px_#f43f5e] animate-pulse"></span>
+                <div class="absolute left-6 top-1/2 -translate-y-1/2 w-48 p-2 bg-[#0d0d12]/95 border border-rose-500/30 text-[9px] font-mono text-rose-400 rounded-lg opacity-0 group-hover/tooltip:opacity-100 transition-opacity z-50 pointer-events-none shadow-2xl">
+                  [!] ALERTA: Requiere vinculación urgente de Historia de Usuario (HU).
+                </div>
+              </div>
+            } @else {
+              <span class="flex h-1.5 w-1.5 rounded-full bg-emerald-500/30"></span>
+            }
+          </td>
+
+          @for (col of columns; track col.key) {
+            <td class="p-4 align-middle">
+              @switch (col.type) {
+                @case ('code') {
+                  <span class="font-mono text-blue-400 font-bold bg-blue-500/5 border border-blue-500/10 px-2 py-0.5 rounded-md">{{ row[col.key] }}</span>
+                }
+
+                @case ('badge') {
+                  <span
+                    [ngClass]="obtenerClasesEstado(row[col.key], row)"
+                    class="px-2 py-0.5 rounded text-[10px] font-mono border uppercase tracking-wide transition-all duration-200">
+                    {{ row[col.key] }}
+                  </span>
+                }
+
+                @case ('avatar') {
+                  <div class="flex items-center gap-2">
+                    <div class="w-5 h-5 rounded-full bg-indigo-600/30 border border-indigo-500/30 flex items-center justify-center text-[9px] font-bold font-mono text-indigo-300">
+                      {{ row[col.key]?.substring(4, 6) | uppercase }}
+                    </div>
+                    <span class="font-mono text-[11px] text-slate-300">{{ row[col.key] }}</span>
+                  </div>
+                }
+                @default {
+                  <span [class.font-bold]="col.key === 'titulo'" class="text-slate-200 block max-w-xs truncate">{{ row[col.key] }}</span>
+                }
+              }
+            </td>
+          }
+
+          <td class="p-4 text-center align-middle">
+            <div class="flex items-center justify-center gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+              <button (click)="onVerDetalle.emit(row)"
+                      title="Ver Diagnóstico Completo"
+                      class="w-7 h-7 rounded-lg border border-white/10 bg-white/5 hover:bg-blue-500/10 hover:border-blue-500/30 flex items-center justify-center text-slate-400 hover:text-blue-400 transition-all cursor-pointer">
+                <i class="pi pi-eye text-[11px]"></i>
+              </button>
+
+              <button (click)="onEditarTicket.emit(row)"
+                      title="Actualizar Requerimiento"
+                      class="w-7 h-7 rounded-lg border border-white/10 bg-white/5 hover:bg-amber-500/10 hover:border-amber-500/30 flex items-center justify-center text-slate-400 hover:text-amber-400 transition-all cursor-pointer">
+                <i class="pi pi-pencil text-[11px]"></i>
+              </button>
+            </div>
+          </td>
+
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

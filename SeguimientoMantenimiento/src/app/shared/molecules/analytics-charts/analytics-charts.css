@@ -1,0 +1,45 @@
+
+/* 1. Panel de Vidrio Oscuro Premium */
+.crypto-glass-card {
+  position: relative;
+  /* Reducimos sutilmente la opacidad del fondo para dejar ver los destellos traseros */
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.015) 0%, rgba(255, 255, 255, 0.002) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.65),
+    inset 0 1px 1px rgba(255, 255, 255, 0.04) !important;
+  /* Motor de renderizado Glassmorphic */
+  backdrop-filter: blur(20px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
+}
+
+/* Efecto Brillo al Pasar el Cursor */
+.crypto-glass-card:hover {
+  border-color: rgba(0, 242, 254, 0.15) !important;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.7),
+    0 0 20px rgba(0, 242, 254, 0.02) !important;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 2. Tooltip HUD Flotante (Control Automático por Eventos de Angular) */
+.hud-tooltip {
+  background: rgba(13, 13, 18, 0.96) !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+}
+
+/* 3. Filtro de Brillo Holográfico para elementos de ApexCharts (SVG) */
+.apexcharts-canvas svg {
+  filter: drop-shadow(0px 4px 15px rgba(0, 242, 254, 0.12));
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

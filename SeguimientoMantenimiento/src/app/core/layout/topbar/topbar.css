@@ -1,0 +1,13 @@
+
+/* Eliminamos el fondo, el borde y la sombra por defecto que mete PrimeNG v18 */
+.popover-transparente {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Opcional: Si aparece una pequeña flecha apuntando al avatar y quieres quitarla */
+.popover-transparente::before,
+.popover-transparente::after {
+  display: none !important;
+}

@@ -1,0 +1,225 @@
+<div class="w-full relative z-0 flex flex-col gap-6 p-6 bg-transparent min-h-screen text-slate-200 font-sans select-none">
+
+  <div class="contenido-hud-vivo w-full flex flex-col gap-6">
+
+    <div class="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-blue-500/5 blur-[120px] pointer-events-none z-0"></div>
+    <div class="absolute bottom-[10%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-purple-500/5 blur-[120px] pointer-events-none z-0"></div>
+
+    <div class="crypto-glass-card rounded-2xl p-3.5 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center relative z-10">
+      <div class="flex flex-wrap items-center gap-4">
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] font-mono text-slate-400 uppercase tracking-widest">PERFIL_ACTIVO:</span>
+          <select [value]="usuarioRol()" (change)="usuarioRol.set($any($event.target).value)" class="bg-[#0b0b12]/80 border border-white/10 text-xs rounded-xl px-3 py-1.5 text-slate-200 font-mono focus:outline-none focus:border-blue-500/40 cursor-pointer backdrop-blur-md">
+            <option value="PMO_LT">PMO & Líder Técnico</option>
+            <option value="DEV">Desarrollador (Hamilton)</option>
+            <option value="QA">Analista QA</option>
+          </select>
+        </div>
+      </div>
+      <span class="text-[9px] text-slate-500 font-mono tracking-widest flex items-center gap-1.5">
+        <span class="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span> CONEXIÓN RBAC BLINDADA: ON
+      </span>
+    </div>
+
+
+    <div class="relative z-10">
+      <app-analytics-charts [ticketsDataSource]="tickets()" [usuarioRol]="usuarioRol()" [usuarioFirmaId]="usuarioFirmaId()"></app-analytics-charts>
+    </div>
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mt-2 relative z-10">
+      <div>
+        <h1 class="text-2xl font-bold text-white tracking-tight">Consola de Operations</h1>
+        <p class="text-xs text-slate-400 mt-0.5">Control de flujo, auditoría de requerimientos y balanceo táctico de sprints.</p>
+      </div>
+
+      <div class="crypto-glass-card p-2 rounded-2xl flex flex-wrap items-center gap-3 w-full lg:w-auto">
+        <button (click)="modalAbierto = true" class="px-3 py-2 text-[10px] font-bold font-mono rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-[0_4px_20px_rgba(59,130,246,0.3)] hover:opacity-90 transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
+          <i class="pi pi-plus text-[9px]"></i> NUEVO TICKET
+        </button>
+        <div class="hidden sm:block w-[1px] h-5 bg-white/10"></div>
+        <div class="relative flex-grow sm:flex-grow-0">
+          <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+          <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" placeholder="Buscar requerimiento..." class="bg-black/20 border border-white/5 text-slate-200 text-xs rounded-xl pl-8 pr-3 py-2 w-full sm:w-48 focus:outline-none focus:border-blue-500/30 transition-colors placeholder:text-slate-600" />
+        </div>
+        <select [ngModel]="selectedStatus()" (ngModelChange)="selectedStatus.set($event)" class="bg-black/20 border border-white/5 text-slate-300 text-xs rounded-xl px-2.5 py-2 focus:outline-none cursor-pointer hover:bg-white/5 transition-colors max-w-full">
+          <option value="">Todos los estados</option>
+          @for (estado of estadosDisponibles; track estado) { <option [value]="estado" class="bg-[#0d0d12] text-slate-300 text-xs">{{ estado }}</option> }
+        </select>
+      </div>
+    </div>
+
+    <div #tableContainer class="transform transition-all duration-[1000ms] ease-[cubic-bezier(0.16,1,0.3,1)] relative z-10 flex flex-col gap-3" [ngClass]="isListVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-16 scale-[0.99]'">
+      <div class="crypto-glass-card rounded-2xl p-5 border border-white/5 flex flex-col gap-1">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono flex items-center gap-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_#3b82f6]"></span>
+          @if (usuarioRol() === 'PMO_LT') { Consola Maestra de Células ALM } @else { Registro de Mis Asignaciones e Historial }
+        </h3>
+        <span class="text-[10px] text-slate-500">Registros filtrados: <strong class="text-blue-400 font-mono">{{ ticketsFiltradosPorRol().length }}</strong> de {{ tickets().length }} totales.</span>
+      </div>
+      <app-data-table [data]="ticketsFiltradosPorRol()" [columns]="tableColumns" (onVerDetalle)="abrirDetalleTicket($event)" (onEditarTicket)="abrirEdicionTicket($event)" class="crypto-glass-table block rounded-2xl overflow-hidden shadow-2xl border border-white/5"></app-data-table>
+    </div>
+
+  </div>
+
+  <app-modal [visible]="modalAbierto" (close)="modalAbierto = false" [title]="'Crear Nuevo Requerimiento'" [size]="'md'">
+    @if (modalAbierto) { <app-formulario-ticket-stepper (onFormComplete)="procesarTicketCreado($event)"></app-formulario-ticket-stepper> }
+  </app-modal>
+
+  <app-modal [visible]="modalDetalleAbierto" (close)="modalDetalleAbierto = false" [title]="'Detalle Ticket'" [size]="'lg'">
+    @if (modalDetalleAbierto && ticketSeleccionado) {
+      <div class="space-y-4 p-5 text-xs font-mono text-slate-300 max-w-4xl max-h-[80vh] overflow-y-auto custom-scrollbar">
+
+        <div
+          [class.border-rose-500/40]="tieneFugaInformacion(ticketSeleccionado)"
+        [class.border-white/10]="!tieneFugaInformacion(ticketSeleccionado)"
+        class="bg-white/[0.02] border rounded-xl p-4 relative overflow-hidden transition-all duration-300">
+
+        <div class="flex flex-wrap justify-between items-center gap-2 mb-2">
+          <div class="flex gap-2">
+            <span class="text-blue-400 text-[10px] font-bold uppercase">UUID: {{ ticketSeleccionado.idTicket }}</span>
+            <span class="text-cyan-400 text-[10px] font-bold uppercase">CASO_ALM: {{ ticketSeleccionado.codigoCaso }}</span>
+            @if (tieneFugaInformacion(ticketSeleccionado)) {
+              <span class="flex h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_8px_#f43f5e] animate-pulse my-auto"></span>
+            }
+          </div>
+
+          <span class="px-2 py-0.5 rounded text-[10px] border uppercase font-bold" [ngClass]="obtenerColorEstado(ticketSeleccionado.estadoActual)">
+              {{ ticketSeleccionado.estadoActual }}
+            </span>
+        </div>
+        <h3 class="text-base font-bold text-white font-sans tracking-tight mb-2">{{ ticketSeleccionado.titulo }}</h3>
+        <p class="text-slate-400 leading-relaxed font-sans text-sm bg-black/20 p-3 rounded-lg border border-white/5">{{ ticketSeleccionado.descripcion || 'Sin especificaciones en el payload.' }}</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white/[0.01] border border-white/5 rounded-xl p-3 flex flex-col gap-0.5">
+          <span class="text-slate-500 font-bold text-[9px] uppercase tracking-wider">Developer:</span>
+          <span class="text-slate-200 font-sans text-xs mt-1"><i class="pi pi-code text-indigo-400 mr-1"></i> {{ ticketSeleccionado.desarrolladorAsignadoId || 'S/A' }}</span>
+        </div>
+        <div class="bg-white/[0.01] border border-white/5 rounded-xl p-3 flex flex-col gap-0.5">
+          <span class="text-slate-500 font-bold text-[9px] uppercase tracking-wider">Analista QA:</span>
+          <span class="text-slate-200 font-sans text-xs mt-1"><i class="pi pi-shield text-purple-400 mr-1"></i> {{ ticketSeleccionado.qaAsignadoId || 'S/A' }}</span>
+        </div>
+        <div class="bg-white/[0.01] border border-white/5 rounded-xl p-3 flex flex-col gap-0.5">
+          <span class="text-slate-500 font-bold text-[9px] uppercase tracking-wider">Líder Técnico:</span>
+          <span class="text-slate-200 font-sans text-xs mt-1"><i class="pi pi-star text-amber-400 mr-1"></i> {{ ticketSeleccionado.ltAsignadoId || 'S/A' }}</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white/[0.01] border border-white/5 rounded-xl p-2.5 flex justify-between items-center">
+          <span class="text-slate-500 text-[9px] uppercase font-bold">Creado:</span>
+          <span class="text-slate-300 text-[10px]">@if (ticketSeleccionado.fechaCreacion) { {{ ticketSeleccionado.fechaCreacion | date:'dd/MM/yyyy HH:mm' }} } @else { N/A }</span>
+        </div>
+        <div class="bg-white/[0.01] border border-white/5 rounded-xl p-2.5 flex justify-between items-center">
+          <span class="text-slate-500 text-[9px] uppercase font-bold">Asignado:</span>
+          <span class="text-slate-300 text-[10px]">{{ ticketSeleccionado.fechaAsignacion | date:'dd/MM/yyyy' }}</span>
+        </div>
+        <div class="bg-white/[0.01] border border-white/5 rounded-xl p-2.5 flex justify-between items-center">
+          <span class="text-slate-500 text-[9px] uppercase font-bold">Último Cambio:</span>
+          <span class="text-cyan-400 text-[10px] font-bold">{{ ticketSeleccionado.fechaUltimaActualizacion | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white/[0.01] border border-white/5 rounded-xl p-4 flex flex-col gap-1.5">
+          <span class="text-rose-400 font-bold text-[10px] uppercase tracking-wider">ANÁLISIS DE CAUSA RAÍZ:</span>
+          <div class="text-slate-300 font-sans text-xs bg-rose-950/10 p-3 rounded-lg border border-rose-500/10 min-h-[60px]">{{ ticketSeleccionado.causaRaiz || 'Pendiente de documentación.' }}</div>
+        </div>
+        <div class="bg-white/[0.01] border border-white/5 rounded-xl p-4 flex flex-col gap-1.5">
+          <span class="text-emerald-400 font-bold text-[10px] uppercase tracking-wider">SOLUCIÓN PROPUESTA:</span>
+          <div class="text-slate-300 font-sans text-xs bg-emerald-950/10 p-3 rounded-lg border border-emerald-500/10 min-h-[60px]">{{ ticketSeleccionado.solucionPropuesta || 'No se ha indexado el plan.' }}</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white/[0.01] border border-white/5 rounded-xl p-3 flex flex-col justify-center">
+          <span class="text-slate-500 font-bold text-[9px] uppercase tracking-wider">Ruta de Medios:</span>
+          <span class="text-slate-300 font-mono text-[11px] bg-black/40 px-2 py-1.5 rounded-lg border border-white/5 mt-1 block truncate"><i class="pi pi-folder text-amber-500 mr-1"></i> {{ ticketSeleccionado.carpetaMedios || 'STORAGE://DEFAULT_NULL' }}</span>
+        </div>
+        <div class="bg-white/[0.01] border border-white/5 rounded-xl p-3 flex flex-col">
+          <span class="text-slate-500 font-bold text-[9px] uppercase tracking-wider mb-1">Repositorios Git Vinculados:</span>
+          <div class="flex flex-wrap gap-1.5 mt-0.5">
+            @for (repo of ticketSeleccionado.repositoriosAfectados; track repo.idRepositorio) {
+              <span class="bg-blue-500/5 border border-blue-500/20 text-blue-400 font-mono px-2 py-1 rounded text-[10px] flex items-center gap-1.5">
+                  <img src="assets/icons/azure-icon-svgrepo-com.svg" alt="Azure Devops" class="w-2.5 h-2.5 opacity-80 object-contain" />
+                {{ repo.repositorio }}
+                </span>
+            } @empty { <span class="text-slate-600 font-mono text-[10px] italic">Ningún repositorio.</span> }
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-xl p-4 border transition-all" [class.border-rose-500/30]="!ticketSeleccionado.historiaUsuario" [class.border-white/5]="ticketSeleccionado.historiaUsuario" [class.bg-rose-950/5]="!ticketSeleccionado.historiaUsuario">
+      <span class="text-slate-500 block mb-1 uppercase tracking-wider text-[10px] font-bold">Historia de Usuario Indexada (HU):</span>
+      @if (ticketSeleccionado.historiaUsuario) { <span class="text-emerald-400 font-bold font-mono bg-emerald-500/5 border border-emerald-500/20 px-2.5 py-1 rounded-lg inline-block mt-1">{{ ticketSeleccionado.historiaUsuario }}</span> }
+      @else { <span class="text-rose-500 font-bold flex items-center gap-1 mt-1 text-[11px] animate-pulse"><i class="pi pi-exclamation-triangle"></i> FUGAS DE DATOS CAMPO FALTANTE: Sin HU vinculada.</span> }
+      </div>
+      </div>
+    }
+  </app-modal>
+
+  <app-modal [visible]="modalEditarAbierto" (close)="modalEditarAbierto = false" [title]="'Actualizar Ticket'" [size]="'md'">
+    @if (modalEditarAbierto && ticketSeleccionado) {
+      <div class="p-5 flex flex-col gap-4 text-xs font-mono text-slate-300 max-w-2xl max-h-[85vh] overflow-y-auto custom-scrollbar">
+        <div class="bg-white/5 border border-white/5 p-3 rounded-xl text-slate-200 font-sans font-bold text-sm flex justify-between items-center">
+          <span class="truncate pr-2">{{ ticketSeleccionado.titulo }}</span>
+          <div class="flex gap-2 shrink-0">
+            <span class="font-mono text-[10px] text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">{{ ticketSeleccionado.idTicket }}</span>
+            <span class="font-mono text-[10px] text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-500/20">{{ ticketSeleccionado.codigoCaso }}</span>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-slate-500 font-bold uppercase text-[9px]">ID Desarrollador:</label>
+            <input type="text" [(ngModel)]="ticketSeleccionado.desarrolladorAsignadoId" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none" />
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-slate-500 font-bold uppercase text-[9px]">ID Analista QA:</label>
+            <input type="text" [(ngModel)]="ticketSeleccionado.qaAsignadoId" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none" />
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-slate-500 font-bold uppercase text-[9px]">Código HU Backlog:</label>
+            <input type="text" [(ngModel)]="ticketSeleccionado.historiaUsuario" placeholder="Ej: HU-101" class="w-full bg-[#0d0d12] border text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none" [class.border-rose-500/30]="!ticketSeleccionado.historiaUsuario" />
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-slate-500 font-bold uppercase text-[9px]">Carpeta de Medios:</label>
+            <input type="text" [(ngModel)]="ticketSeleccionado.carpetaMedios" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none" />
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-slate-500 font-bold uppercase text-[9px]">ID Numérico Usuario Asignado:</label>
+            <input type="number" [(ngModel)]="ticketSeleccionado.idUsuarioAsignado" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none font-mono" />
+          </div>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-rose-400 font-bold uppercase text-[9px]">Redactar Causa Raíz:</label>
+          <textarea [(ngModel)]="ticketSeleccionado.causaRaiz" rows="2" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-3 text-slate-200 font-sans focus:outline-none resize-none"></textarea>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-emerald-400 font-bold uppercase text-[9px]">Especificar Solución Propuesta:</label>
+          <textarea [(ngModel)]="ticketSeleccionado.solucionPropuesta" rows="2" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-3 text-slate-200 font-sans focus:outline-none resize-none"></textarea>
+        </div>
+
+        <div class="flex flex-col gap-2 bg-white/[0.01] border border-white/5 p-4 rounded-xl">
+          <div class="flex justify-between items-center mb-1">
+            <label class="text-slate-400 font-bold uppercase text-[9px] tracking-wider">Modificar Estado Actual del Ciclo:</label>
+
+            <span class="px-2 py-0.5 rounded text-[9px] font-mono border uppercase tracking-wide transition-all" [ngClass]="obtenerColorEstado(ticketSeleccionado.estadoActual)">
+              MÁSCARA: {{ ticketSeleccionado.estadoActual }}
+            </span>
+          </div>
+          <select [(ngModel)]="ticketSeleccionado.estadoActual" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-3 text-slate-200 font-mono focus:outline-none cursor-pointer">
+            @for (estado of estadosDisponibles; track estado) { <option [value]="estado" class="bg-[#0d0d12] text-slate-300">{{ estado }}</option> }
+          </select>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-4 pt-3 border-t border-white/5">
+          <button (click)="modalEditarAbierto = false" class="px-4 py-2 font-bold font-mono text-slate-500 hover:text-slate-300 transition-colors cursor-pointer">CANCELAR</button>
+          <button (click)="guardarCambiosTicket()" class="px-4 py-2 font-bold font-mono bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl shadow-lg transition-all cursor-pointer">CONFIRMAR CAMBIOS</button>
+        </div>
+      </div>
+    }
+  </app-modal>
+
+</div>

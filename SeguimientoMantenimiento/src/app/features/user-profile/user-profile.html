@@ -1,0 +1,133 @@
+<div class="min-h-screen bg-transparent text-slate-200 font-mono p-6 pt-24 flex justify-center items-start select-none">
+
+  <div class="w-full max-w-[1100px] grid grid-cols-1 md:grid-cols-3 gap-6 animate-hud-modal">
+
+    <div class="bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col items-center text-center shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+      <div class="text-[10px] text-blue-400 font-bold tracking-widest mb-4 self-start"> Usuario </div>
+
+      <div class="relative mb-4">
+        <div class="w-24 h-24 rounded-full border-2 border-blue-500/30 flex items-center justify-center p-1 bg-black/40">
+          <img
+            [src]="currentUser.avatarUrl || 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png'"
+            alt="User Avatar"
+            class="w-full h-full rounded-full object-cover border border-white/10"
+          />
+        </div>
+        <span
+          [class]="currentUser.activo ? 'bg-blue-500 shadow-[0_0_10px_#3b82f6]' : 'bg-slate-600'"
+          class="absolute bottom-1 right-1 w-3.5 h-3.5 border-2 border-[#0a0a0f] rounded-full transition-all duration-300">
+        </span>
+      </div>
+
+      <h2 class="text-md font-bold text-white tracking-tight">{{ currentUser.nombres }} {{ currentUser.apellidos }}</h2>
+      <p class="text-[14px] text-white/40 uppercase tracking-widest mt-0.5">Id Usuario {{ currentUser.idUsuario }}</p>
+
+      <div class="mt-4 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-md text-blue-400 text-[11px] font-bold tracking-wider uppercase">
+        Rol Activo {{ currentUser.rol }}
+      </div>
+
+      <div class="w-full border-t border-white/5 mt-6 pt-4 text-left text-[11px] flex flex-col gap-2 text-slate-400">
+        <div class="flex justify-between">
+          <span class="text-slate-600">Estado Actual:</span>
+          <span [class]="currentUser.activo ? 'text-emerald-400' : 'text-rose-500'" class="font-bold">
+            {{ currentUser.activo ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="md:col-span-2 bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col justify-between">
+
+      <div>
+        <div class="flex justify-between items-center border-b border-white/10 pb-3 mb-6">
+          <span class="text-md font-bold text-blue-400 tracking-widest">Credenciales</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[14px] text-slate-500 font-bold tracking-wider">Usuario</label>
+            <input
+              type="text"
+              [value]="currentUser.nombreUsuario"
+              disabled
+              class="w-full h-10 px-3 bg-white/[0.01] border border-white/5 rounded-xl text-xs text-slate-500 font-mono cursor-not-allowed select-none"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[14px] text-slate-500 font-bold tracking-wider">NOMBRES</label>
+            <input
+              type="text"
+              [(ngModel)]="currentUser.nombres"
+              [disabled]="!isEditable"
+              class="w-full h-10 px-3 bg-black/40 border border-white/10 rounded-xl text-xs text-slate-200 font-mono focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[14px] text-slate-500 font-bold tracking-wider">APELLIDOS</label>
+            <input
+              type="text"
+              [(ngModel)]="currentUser.apellidos"
+              [disabled]="!isEditable"
+              class="w-full h-10 px-3 bg-black/40 border border-white/10 rounded-xl text-xs text-slate-200 font-mono focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[14px] text-slate-500 font-bold tracking-wider">Equipo Asignado</label>
+            <input
+              type="text"
+              [(ngModel)]="currentUser.apellidos"
+              [disabled]="!isEditable"
+              class="w-full h-10 px-3 bg-black/40 border border-white/10 rounded-xl text-xs text-slate-200 font-mono focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1.5 sm:col-span-2">
+            <label class="text-[10px] text-slate-500 font-bold tracking-wider">ESTADO OPERATIVO</label>
+            <div class="h-10 flex items-center pl-1">
+              <label class="relative inline-flex items-center" [class.cursor-pointer]="isEditable">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="currentUser.activo"
+                  [disabled]="!isEditable"
+                  class="sr-only peer"
+                />
+                <div class="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-slate-400 peer-checked:after:bg-blue-400 after:border-transparent after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500/20 border border-white/10"></div>
+                <span class="ms-3 text-xs font-mono" [class]="currentUser.activo ? 'text-slate-200' : 'text-slate-500'">
+                  {{ currentUser.activo ? 'OPERATIVO // SYS_ON' : 'SUSPENDIDO // OFF' }}
+                </span>
+              </label>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3 border-t border-white/10 pt-6 mt-8">
+
+        <button
+          *ngIf="isEditable"
+          (click)="cancelarEdicion()"
+          class="h-9 px-4 border border-rose-500/30 bg-rose-500/10 text-rose-400 rounded-xl text-xs font-bold tracking-wider transition-all hover:bg-rose-500/20 active:scale-95"
+        >
+          CANCELAR
+        </button>
+
+        <button
+          (click)="isEditable ? guardarInformacion() : habilitarEdicion()"
+          [class]="isEditable
+            ? 'h-9 px-4 border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 rounded-xl text-xs font-bold tracking-wider transition-all hover:bg-emerald-500/20 active:scale-95'
+            : 'h-9 px-4 border border-blue-500/30 bg-blue-500/10 text-blue-400 rounded-xl text-xs font-bold tracking-wider transition-all hover:bg-blue-500/20 active:scale-95'"
+        >
+          {{ isEditable ? 'Guardar' : 'Editar' }}
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>

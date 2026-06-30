@@ -1,0 +1,270 @@
+<div class="space-y-6 relative z-10 w-full text-slate-200">
+
+  @switch (usuarioRol) {
+
+    @case ('PMO_LT') {
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="crypto-glass-card rounded-2xl p-4 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Volumen Total Sprint</span>
+            <h2 class="text-xl font-bold text-white font-mono mt-0.5">{{ totalTickets }} <span class="text-xs text-slate-500 font-sans font-normal">tck</span></h2>
+          </div>
+          <div class="w-24 h-12">
+            @if (graficoTendenciaEntrada) { <apx-chart [series]="graficoTendenciaEntrada.series" [chart]="graficoTendenciaEntrada.chart" [colors]="graficoTendenciaEntrada.colors" [stroke]="graficoTendenciaEntrada.stroke" [fill]="graficoTendenciaEntrada.fill"></apx-chart> }
+          </div>
+        </div>
+
+        <div class="crypto-glass-card rounded-2xl p-4 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-indigo-400 font-bold uppercase tracking-wider block">Soporte & Mantenimiento (WIP)</span>
+            <h2 class="text-xl font-bold text-white font-mono mt-0.5">{{ enDesarrollo }} <span class="text-xs text-slate-500 font-sans font-normal">dev</span></h2>
+          </div>
+          <span class="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded border border-indigo-500/20">CORE DEV</span>
+        </div>
+
+        <div class="crypto-glass-card rounded-2xl p-4 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider block">Garantía de Calidad</span>
+            <h2 class="text-xl font-bold text-white font-mono mt-0.5">{{ enQA }} <span class="text-xs text-slate-500 font-sans font-normal">testing</span></h2>
+          </div>
+          <span class="text-[10px] font-mono text-purple-400 bg-purple-500/10 px-2 py-1 rounded border border-purple-500/20">QA STAGE</span>
+        </div>
+
+        <div class="crypto-glass-card rounded-2xl p-4 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-rose-500 font-bold uppercase tracking-wider block">Alertas e Impedimentos</span>
+            <h2 class="text-xl font-bold text-rose-400 font-mono mt-0.5">{{ bloqueados }} <span class="text-xs text-rose-500/50 font-sans font-normal">bloqueos</span></h2>
+          </div>
+          <div class="w-24 h-12">
+            @if (graficoAlertasCriticas) { <apx-chart [series]="graficoAlertasCriticas.series" [chart]="graficoAlertasCriticas.chart" [colors]="graficoAlertasCriticas.colors" [stroke]="graficoAlertasCriticas.stroke" [fill]="graficoAlertasCriticas.fill"></apx-chart> }
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        <div class="crypto-glass-card rounded-2xl p-5 flex flex-col justify-between lg:col-span-2 relative">
+          <div>
+            <div class="flex justify-between items-center mb-4">
+              <h4 class="text-xs font-bold uppercase font-mono text-slate-300">Estabilidad de Entrega (Cumulative Flow)</h4>
+              <div class="cursor-pointer text-slate-500 hover:text-indigo-400 transition-colors relative" (click)="alternarTooltip('estabilidad', $event)">
+                <i class="pi pi-info-circle text-xs"></i>
+                @if (tooltipActivo['estabilidad']) {
+                  <div class="absolute right-0 top-6 w-56 p-3 bg-[#0d0d12]/95 border border-indigo-500/30 rounded-xl shadow-2xl backdrop-blur-md z-30 text-[10px] text-slate-400 leading-relaxed animate-fade-in">
+                    <span class="text-indigo-400 font-bold font-mono block mb-1">ANÁLISIS FLUJO</span>
+                    Supervisa el balance operativo. Si la brecha entre el WIP y las salidas se amplía, indica cuellos de botella severos.
+                  </div>
+                }
+              </div>
+            </div>
+            <div class="w-full min-h-[260px]">
+              @if (graficoEstabilidadFlujo) { <apx-chart [series]="graficoEstabilidadFlujo.series" [chart]="graficoEstabilidadFlujo.chart" [colors]="graficoEstabilidadFlujo.colors" [stroke]="graficoEstabilidadFlujo.stroke" [fill]="graficoEstabilidadFlujo.fill" [xaxis]="graficoEstabilidadFlujo.xaxis" [grid]="graficoEstabilidadFlujo.grid" [yaxis]="graficoEstabilidadFlujo.yaxis"></apx-chart> }
+            </div>
+          </div>
+          <p class="text-[10px] text-slate-500 font-mono border-t border-white/5 pt-3 mt-4">* Datos analizados inductivamente según la cadencia actual del Sprint.</p>
+        </div>
+
+        <div class="crypto-glass-card rounded-2xl p-5 flex flex-col justify-between">
+          <div>
+            <h4 class="text-xs font-bold uppercase font-mono text-slate-300 mb-3">Eficiencia Integral del Compromiso</h4>
+            <div class="flex justify-center items-center min-h-[140px]">
+              @if (graficoEficienciaCompromiso) { <apx-chart [series]="graficoEficienciaCompromiso.series" [chart]="graficoEficienciaCompromiso.chart" [plotOptions]="graficoEficienciaCompromiso.plotOptions" [colors]="graficoEficienciaCompromiso.colors"></apx-chart> }
+            </div>
+            <div class="space-y-2 mt-2 border-t border-white/[0.03] pt-2">
+              <span class="text-[9px] text-slate-400 font-mono font-bold uppercase tracking-wider block">RENDIMIENTO EQUIPO</span>
+              @if (graficoResolucionIngenieros) { <apx-chart [series]="graficoResolucionIngenieros.series" [chart]="graficoResolucionIngenieros.chart" [plotOptions]="graficoResolucionIngenieros.plotOptions" [colors]="graficoResolucionIngenieros.colors" [xaxis]="graficoResolucionIngenieros.xaxis"></apx-chart> }
+            </div>
+          </div>
+          <div class="text-[9px] text-slate-500 font-mono mt-2 text-right">MÉTRICAS SISTEMA: <span class="text-emerald-400 font-bold">ONLINE</span></div>
+        </div>
+      </div>
+
+      <div class="crypto-glass-card rounded-2xl p-5 relative">
+        <div class="flex justify-between items-center mb-4">
+          <h4 class="text-xs font-bold uppercase font-mono text-slate-300">Densidad de Acumulación por Fases Operativas</h4>
+          <div class="cursor-pointer text-slate-500 hover:text-indigo-400 transition-colors relative" (click)="alternarTooltip('densidad', $event)">
+            <i class="pi pi-info-circle text-xs"></i>
+            @if (tooltipActivo['densidad']) {
+              <div class="absolute right-0 top-6 w-56 p-3 bg-[#0d0d12]/95 border border-indigo-500/30 rounded-xl shadow-2xl backdrop-blur-md z-30 text-[10px] text-slate-400 leading-relaxed">
+                <span class="text-indigo-400 font-bold font-mono block mb-1">BALANCE FASES</span>
+                Muestra la carga viva por ambiente comparada contra las líneas sugeridas de control SLA para evitar sobrecargas de inventario técnico.
+              </div>
+            }
+          </div>
+        </div>
+        <div class="w-full min-h-[240px]">
+          @if (graficoDensidadAcumulacion) { <apx-chart [series]="graficoDensidadAcumulacion.series" [chart]="graficoDensidadAcumulacion.chart" [plotOptions]="graficoDensidadAcumulacion.plotOptions" [colors]="graficoDensidadAcumulacion.colors" [xaxis]="graficoDensidadAcumulacion.xaxis" [grid]="graficoDensidadAcumulacion.grid" [yaxis]="graficoDensidadAcumulacion.yaxis" [legend]="graficoDensidadAcumulacion.legend"></apx-chart> }
+        </div>
+      </div>
+    }
+
+    @case ('DEV') {
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="crypto-glass-card rounded-2xl p-4 flex justify-between items-center">
+          <div>
+            <span class="text-[10px] text-indigo-400 font-bold uppercase tracking-wider block">Asignaciones en Sprint</span>
+            <h2 class="text-lg font-bold text-white font-mono mt-0.5">{{ tckAsignadosDev }} <span class="text-xs text-slate-500 font-sans font-normal">items</span></h2>
+          </div>
+          <span class="text-[9px] text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded font-mono border border-indigo-500/20">SPRINT LOAD</span>
+        </div>
+
+        <div class="crypto-glass-card rounded-2xl p-4 flex justify-between items-center">
+          <div>
+            <span class="text-[10px] text-cyan-400 font-bold uppercase tracking-wider block">Trabajo en Progreso (WIP)</span>
+            <h2 class="text-lg font-bold text-white font-mono mt-0.5">{{ tckActivosWIPDev }} <span class="text-xs text-slate-500 font-sans font-normal">en curso</span></h2>
+          </div>
+          <span class="text-[9px] text-cyan-400 bg-cyan-500/10 px-2 py-1 rounded font-mono border border-cyan-500/20" [class.animate-pulse]="tckActivosWIPDev > 3">WIP LIMIT</span>
+        </div>
+
+        <div class="crypto-glass-card rounded-2xl p-4 flex justify-between items-center">
+          <div>
+            <span class="text-[10px] text-rose-400 font-bold uppercase tracking-wider block">Fallas en Pruebas (Rebotes)</span>
+            <h2 class="text-lg font-bold text-rose-400 font-mono mt-0.5">{{ tckDevueltosDev }} <span class="text-xs text-slate-500 font-sans font-normal">reabiertos</span></h2>
+          </div>
+          <span class="text-[9px] text-rose-400 bg-rose-500/10 px-2 py-1 rounded font-mono border border-rose-500/20">QA BOUNCE</span>
+        </div>
+
+        <div class="crypto-glass-card rounded-2xl p-4 flex justify-between items-center">
+          <div>
+            <span class="text-[10px] text-amber-400 font-bold uppercase tracking-wider block">Impedimentos Activos</span>
+            <h2 class="text-lg font-bold text-amber-400 font-mono mt-0.5">{{ tckBloqueadosDev }} <span class="text-xs text-amber-500/50 font-sans font-normal">bloqueos</span></h2>
+          </div>
+          <span class="text-[9px] text-amber-400 bg-amber-500/10 px-2 py-1 rounded font-mono border border-amber-500/20">BLOCKERS</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        <div class="crypto-glass-card rounded-2xl p-5 flex flex-col justify-between lg:col-span-2 relative">
+          <div>
+            <div class="flex justify-between items-center mb-4">
+              <h4 class="text-xs font-bold uppercase font-mono text-slate-300">Distribución Cuantitativa por Estado Técnico</h4>
+              <div class="cursor-pointer text-slate-500 hover:text-indigo-400 transition-colors relative" (click)="alternarTooltip('retrabajo', $event)">
+                <i class="pi pi-info-circle text-xs"></i>
+                @if (tooltipActivo['retrabajo']) {
+                  <div class="absolute right-0 top-6 w-56 p-3 bg-[#0d0d12]/95 border border-indigo-500/30 rounded-xl shadow-2xl backdrop-blur-md z-30 text-[10px] text-slate-400 leading-relaxed animate-fade-in">
+                    <span class="text-indigo-400 font-bold font-mono block mb-1">Distribución Estados</span>
+                    Expone con precisión cuántos del total de tus tickets asignados residen en cada etapa lógica del flujo de trabajo actual.
+                  </div>
+                }
+              </div>
+            </div>
+            <div class="w-full min-h-[240px] mt-2">
+              @if (graficoRetrabajoDev) { <apx-chart [series]="graficoRetrabajoDev.series" [chart]="graficoRetrabajoDev.chart" [colors]="graficoRetrabajoDev.colors" [plotOptions]="graficoRetrabajoDev.plotOptions" [xaxis]="graficoRetrabajoDev.xaxis" [grid]="graficoRetrabajoDev.grid"></apx-chart> }
+            </div>
+          </div>
+          <p class="text-[10px] text-slate-500 font-mono border-t border-white/5 pt-3 mt-4">* Visualización ágil de carga: Diseñado para mitigar la acumulación desmedida de requerimientos.</p>
+        </div>
+
+        <div class="crypto-glass-card rounded-2xl p-5 flex flex-col justify-between">
+          <div>
+            <h4 class="text-xs font-bold uppercase font-mono text-slate-300 mb-3">Eficiencia y Avance del Sprint</h4>
+            <div class="flex justify-center items-center min-h-[140px] relative">
+              <div class="absolute text-center mt-18"><span class="text-[9px] text-slate-500 font-mono uppercase block">Completado</span></div>
+              @if (graficoEficienciaCompromiso) { <apx-chart [series]="[kpiEficienciaSprintDev]" [chart]="graficoEficienciaCompromiso.chart" [plotOptions]="graficoEficienciaCompromiso.plotOptions" [colors]="['#6366f1']"></apx-chart> }
+            </div>
+            <div class="space-y-3 mt-2 pt-2 border-t border-white/[0.03]">
+              <span class="text-[9px] text-slate-400 font-mono font-bold uppercase tracking-wider block">RATIOS DE FRICCIÓN</span>
+              <div>
+                <div class="flex justify-between text-[10px] font-mono text-slate-400 mb-0.5"><span>Tasa de Retrabajo (QA Bounce)</span><span [class]="kpiTasaRetrabajoDev > 25 ? 'text-rose-400 font-bold' : 'text-emerald-400 font-bold'">{{ kpiTasaRetrabajoDev }}%</span></div>
+                <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden"><div class="h-full rounded-full transition-all duration-500" [class]="kpiTasaRetrabajoDev > 25 ? 'bg-rose-500' : 'bg-emerald-500'" [style.width.%]="kpiTasaRetrabajoDev || 5"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between text-[10px] font-mono text-slate-400 mb-0.5"><span>Ratio de Bloqueos</span><span class="text-amber-400 font-bold">{{ kpiRatioBloqueosDev }}%</span></div>
+                <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden"><div class="bg-amber-500 h-full rounded-full transition-all duration-500" [style.width.%]="kpiRatioBloqueosDev"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="text-[12px] text-white font-mono mt-4 text-right">ID FIRMA: <span class="text-indigo-400 font-bold">{{ usuarioFirmaId }}</span></div>
+        </div>
+      </div>
+    }
+
+    @case ('QA') {
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="crypto-glass-card rounded-2xl p-4 flex justify-between items-center">
+          <div>
+            <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider block">Cola en Ejecución</span>
+            <h2 class="text-lg font-bold text-white font-mono mt-0.5">{{ tckPendientesQA }} <span class="text-xs text-slate-500 font-sans font-normal">casos</span></h2>
+          </div>
+          <span class="text-[9px] text-purple-400 bg-purple-500/10 px-2 py-1 rounded font-mono border border-purple-500/20">COLA PRUEBAS</span>
+        </div>
+
+        <div class="crypto-glass-card rounded-2xl p-4 flex justify-between items-center">
+          <div>
+            <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block">Throughput de Cierre</span>
+            <h2 class="text-lg font-bold text-white font-mono mt-0.5">{{ certificados }} <span class="text-xs text-slate-500 font-sans font-normal">éxitos</span></h2>
+          </div>
+          <span class="text-[9px] text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded font-mono border border-emerald-500/20">CASOS PASADOS</span>
+        </div>
+
+        <div class="crypto-glass-card rounded-2xl p-4 flex justify-between items-center">
+          <div>
+            <span class="text-[10px] text-rose-400 font-bold uppercase tracking-wider block">Índice de Rechazo Global</span>
+            <h2 class="text-lg font-bold text-rose-400 font-mono mt-0.5">{{ kpiIndiceRechazoQA }}%</h2>
+          </div>
+          <span class="text-[9px] text-rose-400 bg-rose-500/10 px-2 py-1 rounded font-mono border border-rose-500/20">RECHAZO A DEV</span>
+        </div>
+
+        <div class="crypto-glass-card rounded-2xl p-4 flex justify-between items-center">
+          <div>
+            <span class="text-[10px] text-cyan-400 font-bold uppercase tracking-wider block">Cobertura Estabilidad</span>
+            <h2 class="text-lg font-bold text-white font-mono mt-0.5">88.5%</h2>
+          </div>
+          <span class="text-[9px] text-cyan-400 bg-cyan-500/10 px-2 py-1 rounded font-mono border border-cyan-500/20">COBERTURA QA</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        <div class="crypto-glass-card rounded-2xl p-5 flex flex-col justify-between lg:col-span-2 relative">
+          <div>
+            <div class="flex justify-between items-center mb-4">
+              <h4 class="text-xs font-bold uppercase font-mono text-slate-300">Velocidad de Certificación y Diagnósticos</h4>
+              <div class="cursor-pointer text-slate-500 hover:text-purple-400 transition-colors relative" (click)="alternarTooltip('qaVelocity', $event)">
+                <i class="pi pi-info-circle text-xs"></i>
+                @if (tooltipActivo['qaVelocity']) {
+                  <div class="absolute right-0 top-6 w-56 p-3 bg-[#0d0d12]/95 border border-purple-500/30 rounded-xl shadow-2xl backdrop-blur-md z-30 text-[10px] text-slate-400 leading-relaxed animate-fade-in">
+                    <span class="text-purple-400 font-bold font-mono block mb-1">PRUEBAS VELOCIDAD</span>
+                    Mapea la velocidad en la que los casos son removidos de la cola de pruebas exitosamente contra el ingreso de nuevos incidentes.
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
+              <div class="md:col-span-3 min-h-[180px]">
+                @if (graficoVelocidadCertificacionQA) { <apx-chart [series]="graficoVelocidadCertificacionQA.series" [chart]="graficoVelocidadCertificacionQA.chart" [colors]="graficoVelocidadCertificacionQA.colors" [stroke]="graficoVelocidadCertificacionQA.stroke" [fill]="graficoVelocidadCertificacionQA.fill" [xaxis]="graficoVelocidadCertificacionQA.xaxis" [grid]="graficoVelocidadCertificacionQA.grid"></apx-chart> }
+              </div>
+              <div class="md:col-span-2 flex flex-col items-center justify-center border-l border-white/[0.03] pl-2">
+                <span class="text-[9px] font-mono text-slate-500 uppercase mb-2">BALANCE DIAGNOSTICO</span>
+                <div class="w-full scale-110 flex justify-center">
+                  @if (graficoDiagnosticoRadarQA) { <apx-chart [series]="graficoDiagnosticoRadarQA.series" [chart]="graficoDiagnosticoRadarQA.chart" [plotOptions]="graficoDiagnosticoRadarQA.plotOptions" [colors]="graficoDiagnosticoRadarQA.colors" [xaxis]="graficoDiagnosticoRadarQA.xaxis"></apx-chart> }
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="text-[10px] text-slate-500 font-mono border-t border-white/5 pt-3 mt-4">* Mide el balance de la celda de pruebas entre detección oportuna de fallas y cierres fluidos.</p>
+        </div>
+
+        <div class="crypto-glass-card rounded-2xl p-5 flex flex-col justify-between">
+          <div>
+            <h4 class="text-xs font-bold uppercase font-mono text-slate-300 mb-3">Estabilidad y Deuda Técnico</h4>
+            <div class="flex justify-center items-center min-h-[140px]">
+              @if (graficoEficienciaCompromiso) { <apx-chart [series]="graficoEficienciaCompromiso.series" [chart]="graficoEficienciaCompromiso.chart" [plotOptions]="graficoEficienciaCompromiso.plotOptions" [colors]="graficoEficienciaCompromiso.colors"></apx-chart> }
+            </div>
+            <div class="space-y-2 mt-2 pt-2 border-t border-white/[0.03]">
+              <span class="text-[9px] text-slate-400 font-mono font-bold uppercase tracking-wider block">SEVERIDAD DEFECTOS ACTIVOS</span>
+              <div>
+                <div class="flex justify-between text-[10px] font-mono text-slate-400 mb-0.5"><span>Bloqueante / Crítico (Impedimentos)</span><span class="text-rose-400 font-bold">{{ tckCriticosBloqueantesQA }}</span></div>
+                <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden"><div class="bg-rose-500 h-full rounded-full animate-pulse" [style.width.%]="(tckCriticosBloqueantesQA / totalTickets) * 100 || 10"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between text-[10px] font-mono text-slate-400 mb-0.5"><span>Mayor / Funcional (Devueltos)</span><span class="text-amber-400 font-bold">{{ tckFuncionalesMayoresQA }}</span></div>
+                <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden"><div class="bg-amber-500 h-full rounded-full" [style.width.%]="(tckFuncionalesMayoresQA / totalTickets) * 100 || 20"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="text-[9px] text-slate-500 font-mono mt-4 text-right">STATUS REGRESIÓN: <span class="text-emerald-400 font-bold">ESTABLE</span></div>
+        </div>
+      </div>
+    }
+  }
+</div>

@@ -1,0 +1,14 @@
+<span
+  class="px-3 py-1 text-[11px] uppercase tracking-wider font-bold rounded-full transition-colors duration-300 flex items-center justify-center w-fit"
+  [class]="badgeClass"
+>
+  @if (status === 'BLOQUEO' || status === 'ROLLBACK') {
+    <i class="pi pi-exclamation-triangle mr-1 text-[10px]"></i>
+  }
+
+  @if (status === 'FINALIZADO') {
+    <i class="pi pi-check-circle mr-1 text-[10px]"></i>
+  }
+
+  {{ labelFormateada }}
+</span>

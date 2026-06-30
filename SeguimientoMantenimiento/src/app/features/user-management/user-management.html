@@ -1,0 +1,110 @@
+<div class="w-full relative z-0 flex flex-col gap-6 p-6 bg-transparent min-h-screen text-slate-200 font-sans select-none">
+
+  <div class="contenido-hud-vivo w-full flex flex-col gap-6">
+
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-2 relative z-10">
+      <div>
+        <h1 class="text-2xl font-bold text-white tracking-tight">Equipo</h1>
+      </div>
+
+      @if (usuarioLogueadoRol() === RolesEnum.Product_Owner) {
+        <button (click)="abrirCreador()" class="px-3 py-2 text-[10px] font-bold font-mono rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg transition-all cursor-pointer whitespace-nowrap">
+          <i class="pi pi-user-plus mr-1"></i> REGISTRAR USUARIO
+        </button>
+      }
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 relative z-10">
+      <div class="crypto-glass-card p-4 rounded-xl border border-white/5 flex flex-col">
+        <span class="text-[9px] font-mono text-slate-400 uppercase tracking-widest">Total Personal</span>
+        <span class="text-xl font-bold text-white font-mono mt-1">{{ kpis().total }} <span class="text-xs text-slate-500">users</span></span>
+      </div>
+      <div class="crypto-glass-card p-4 rounded-xl border border-white/5 flex flex-col">
+        <span class="text-[9px] font-mono text-emerald-400 uppercase tracking-widest">Sistemas Activos</span>
+        <span class="text-xl font-bold text-emerald-400 font-mono mt-1">{{ kpis().activos }} <span class="text-xs text-emerald-600">online</span></span>
+      </div>
+      <div class="crypto-glass-card p-4 rounded-xl border border-white/5 flex flex-col">
+        <span class="text-[9px] font-mono text-rose-400 uppercase tracking-widest">Inactivos / Bajas</span>
+        <span class="text-xl font-bold text-rose-400 font-mono mt-1">{{ kpis().inactivos }} <span class="text-xs text-rose-600">offline</span></span>
+      </div>
+      <div class="crypto-glass-card p-4 rounded-xl border border-white/5 flex flex-col justify-between">
+        <span class="text-[9px] font-mono text-blue-400 uppercase tracking-widest">Mapeo por Rol</span>
+        <span class="text-[9px] font-mono text-slate-400 mt-1">DEV: {{ kpis().dev }} | QA: {{ kpis().qa }} | LT: {{ kpis().lt }} | PO: {{ kpis().po }}</span>
+      </div>
+    </div>
+
+    @if (usuarioLogueadoRol() === RolesEnum.Product_Owner) {
+      <app-data-table
+        [data]="usuarios()"
+        [columns]="userTableColumns"
+        (onVerDetalle)="abrirEditor($event)"
+        (onEditarTicket)="abrirEditor($event)"
+        (onEliminarTicket)="eliminarUsuario($event)"
+        class="crypto-glass-table block rounded-2xl overflow-hidden shadow-2xl border border-white/5 relative z-10">
+      </app-data-table>
+    } @else {
+      <div class="crypto-glass-card p-6 rounded-2xl border border-white/5 text-center max-w-xl mx-auto relative z-10 my-8">
+        <i class="pi pi-lock text-amber-500 text-xl animate-pulse"></i>
+        <h4 class="text-sm font-bold text-white uppercase font-mono mt-2">CONTROL PERFIL INDIVIDUAL</h4>
+        <p class="text-xs text-slate-400 font-sans mt-1">No posees permisos de administración global. Tu consola de auto-actualización exclusiva de cuenta ha sido ejecutada.</p>
+      </div>
+    }
+
+  </div>
+
+  <app-modal [visible]="modalAbierto" (close)="modalAbierto = false" [title]="modoEdicion ? 'Actualizar Parámetros de Perfil' : 'Alta de Nuevo Ingeniero'" [size]="'md'">
+    @if (modalAbierto) {
+      <div class="p-5 flex flex-col gap-4 text-xs font-mono text-slate-300">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-slate-500 font-bold uppercase text-[9px]">Nombre de Usuario:</label>
+            <input type="text" [(ngModel)]="usuarioSeleccionado.nombreUsuario" [disabled]="modoEdicion && usuarioLogueadoRol() !== RolesEnum.Product_Owner" placeholder="Ej: hamilton.dev" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none disabled:opacity-50" />
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-slate-500 font-bold uppercase text-[9px]">URL de Avatar (Opcional):</label>
+            <input type="text" [(ngModel)]="usuarioSeleccionado.avatarUrl" placeholder="assets/avatars/..." class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-slate-500 font-bold uppercase text-[9px]">Nombres:</label>
+            <input type="text" [(ngModel)]="usuarioSeleccionado.nombres" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none" />
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-slate-500 font-bold uppercase text-[9px]">Apellidos:</label>
+            <input type="text" [(ngModel)]="usuarioSeleccionado.apellidos" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white/[0.01] border border-white/5 p-3 rounded-xl">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-slate-500 font-bold uppercase text-[9px]">Rol en Célula Operativa:</label>
+            <select [(ngModel)]="usuarioSeleccionado.rol" [disabled]="usuarioLogueadoRol() !== RolesEnum.Product_Owner" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2 text-slate-200 focus:outline-none disabled:opacity-50 cursor-pointer uppercase font-mono">
+              <option [value]="RolesEnum.Product_Owner">Product Owner</option>
+              <option [value]="RolesEnum.Lider_Tecnico">Líder Técnico</option>
+              <option [value]="RolesEnum.Desarrollador">Desarrollador</option>
+              <option [value]="RolesEnum.Qa">QA</option>
+            </select>
+          </div>
+
+          <div class="flex flex-col gap-1.5 justify-center pl-2">
+            <label class="text-slate-500 font-bold uppercase text-[9px] mb-1">Estado de Cuenta:</label>
+            <label class="flex items-center gap-2 cursor-pointer text-slate-300">
+              <input type="checkbox" [(ngModel)]="usuarioSeleccionado.activo" [disabled]="usuarioLogueadoRol() !== RolesEnum.Product_Owner" class="rounded border-white/10 bg-[#0d0d12] text-blue-500 focus:ring-0 disabled:opacity-50" />
+              <span>Usuario Vigente</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-4 pt-3 border-t border-white/5">
+          <button (click)="modalAbierto = false" class="px-4 py-2 font-bold font-mono text-slate-500 hover:text-slate-300 transition-colors cursor-pointer">CANCELAR</button>
+          <button (click)="guardarUsuario()" class="px-4 py-2 font-bold font-mono bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl shadow-lg transition-all cursor-pointer">CONFIRMAR CAMBIOS</button>
+        </div>
+
+      </div>
+    }
+  </app-modal>
+
+</div>

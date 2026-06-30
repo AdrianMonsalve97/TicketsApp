@@ -1,0 +1,43 @@
+/* Archivo: src/app/features/auth/login/login.css */
+
+/* Animación HUD para la entrada de la terminal */
+@keyframes loginTerminalReveal {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-hud-modal {
+  animation: loginTerminalReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Modificación de checkbox nativo para acoplarse al look oscuro */
+input[type="checkbox"] {
+  appearance: none;
+  background-color: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+}
+
+input[type="checkbox"]:checked {
+  background-color: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  top: -2px;
+  left: 2px;
+  font-size: 10px;
+  color: #3b82f6;
+  font-weight: bold;
+}
