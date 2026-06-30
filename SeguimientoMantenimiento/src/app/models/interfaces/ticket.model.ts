@@ -2,6 +2,7 @@ import { TicketStatus } from '../enums/ticket-status';
 import { Repository } from './repository.model';
 import { TicketHistory } from './ticket-history.model';
 
+
 export interface Ticket {
   idTicket: string;
   codigoCaso: string;
