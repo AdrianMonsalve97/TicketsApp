@@ -19,7 +19,7 @@
             type="text"
             [(ngModel)]="credenciales.nombreUsuario"
             name="username"
-            requiredl
+            required
             placeholder="ej: aelsner_exec"
             class="w-full h-11 pl-10 pr-4 bg-black/60 border border-white/10 rounded-xl text-xs text-slate-200 font-mono focus:outline-none focus:border-blue-500/40 focus:bg-black/80 transition-all placeholder:text-slate-700"
           />
@@ -41,12 +41,19 @@
         </div>
       </div>
 
+      @if (errorMessage) {
+        <div class="text-[10px] text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-xl px-3 py-2">
+          {{ errorMessage }}
+        </div>
+      }
+
       <div class="pt-2">
         <button
           type="submit"
+          [disabled]="isLoading"
           class="w-full h-11 border border-blue-500/30 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 active:scale-[0.99] rounded-xl text-xs font-bold tracking-widest transition-all shadow-[0_4px_25px_rgba(59,130,246,0.05)] uppercase"
         >
-         Continuar
+         {{ isLoading ? 'Validando...' : 'Continuar' }}
         </button>
       </div>
 

@@ -1,19 +1,20 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, effect, input } from '@angular/core';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { calculateMetrics, ChartMetrics } from '../../../core/services/ticket-metrics';
 import * as factories from '../../../models/constants/chart-configs';
+import { Ticket } from '../../../models/interfaces/ticket.model';
 
 @Component({
   selector: 'app-analytics-charts',
-  standalone: true,
   imports: [NgApexchartsModule],
   templateUrl: './analytics-charts.html',
   styleUrl: './analytics-charts.css',
 })
-export class AnalyticsChartsComponent implements OnChanges {
-  @Input() ticketsDataSource: any[] = [];
-  @Input() usuarioRol: 'PMO_LT' | 'DEV' | 'QA' = 'PMO_LT';
-  @Input() usuarioFirmaId: string = 'DEV-Hamilton';
+export class AnalyticsChartsComponent {
+  ticketsDataSource = input<Ticket[]>([]);
+  usuarioRol = input<'PMO_LT' | 'DEV' | 'QA'>('PMO_LT');
+  usuarioFirmaId = input('DEV-Hamilton');
+  usuarioNombre = input('Usuario');
 
   // Configs
   public graficoTendenciaEntrada: any;
@@ -28,6 +29,9 @@ export class AnalyticsChartsComponent implements OnChanges {
 
   // Calculados finales para bindear en UI
   public totalTickets = 0;
+  public totalSinHU = 0;
+  public urgentesSinHU = 0;
+  public urgentesConHU = 0;
   public enDesarrollo = 0;
   public enQA = 0;
   public certificados = 0;
@@ -56,12 +60,15 @@ export class AnalyticsChartsComponent implements OnChanges {
     qaVelocity: false,
   };
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (this.ticketsDataSource) {
-      const metrics = calculateMetrics(this.ticketsDataSource, this.usuarioFirmaId);
-      this.bindMetrics(metrics);
-      this.inicializarConsolaGrafica(metrics);
-    }
+  constructor() {
+    effect(() => {
+      const ticketsDataSource = this.ticketsDataSource();
+      if (ticketsDataSource) {
+        const metrics = calculateMetrics(ticketsDataSource, this.usuarioFirmaId());
+        this.bindMetrics(metrics);
+        this.inicializarConsolaGrafica(metrics);
+      }
+    });
   }
 
   public alternarTooltip(id: string, event: Event): void {
@@ -74,6 +81,9 @@ export class AnalyticsChartsComponent implements OnChanges {
 
   private bindMetrics(m: ChartMetrics) {
     this.totalTickets = m.totalTickets;
+    this.totalSinHU = m.totalSinHU;
+    this.urgentesSinHU = m.urgentesSinHU;
+    this.urgentesConHU = m.urgentesConHU;
     this.enDesarrollo = m.enDesarrollo;
     this.enQA = m.enQA;
     this.certificados = m.certificados;
@@ -102,7 +112,7 @@ export class AnalyticsChartsComponent implements OnChanges {
     this.graficoRetrabajoDev = factories.buildRetrabajoDev(m);
     this.graficoVelocidadCertificacionQA = factories.buildVelocidadCertificacionQA(m);
     this.graficoDiagnosticoRadarQA = factories.buildDiagnosticoRadarQA(m);
-    this.graficoEficienciaCompromiso = factories.buildEficienciaCompromiso(m, this.usuarioRol);
-    this.graficoResolucionIngenieros = factories.buildResolucionIngenieros();
+    this.graficoEficienciaCompromiso = factories.buildEficienciaCompromiso(m, this.usuarioRol());
+    this.graficoResolucionIngenieros = factories.buildResolucionIngenieros(m, this.usuarioNombre());
   }
 }

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { StatusColors } from '../../../models/constants/status-colors';
 import { tieneFugaInformacion } from '../../../models/utils/ticket.utils';
@@ -11,23 +11,22 @@ export interface TableColumn {
 
 @Component({
   selector: 'app-data-table',
-  standalone: true,
   imports: [CommonModule],
   templateUrl: './data-table.html',
   styleUrl: './data-table.css',
 })
 export class DataTableComponent {
-  @Input() title: string = 'Registros';
-  @Input() subtitle: string = 'Estructura de datos tabular.';
-  @Input() data: any[] = [];
-  @Input() columns: TableColumn[] = [];
+  title = input('Registros');
+  subtitle = input('Estructura de datos tabular.');
+  data = input<any[]>([]);
+  columns = input<TableColumn[]>([]);
 
-  @Output() onRowClick = new EventEmitter<any>();
-  @Output() onFilterClick = new EventEmitter<void>();
+  onRowClick = output<any>();
+  onFilterClick = output<void>();
 
-  @Output() onVerDetalle = new EventEmitter<any>();
-  @Output() onEditarTicket = new EventEmitter<any>();
-  @Output() onEliminarTicket = new EventEmitter<any>();
+  onVerDetalle = output<any>();
+  onEditarTicket = output<any>();
+  onEliminarTicket = output<any>();
 
   getNestedValue(item: any, key: string): any {
     if (!item || !key) return '';

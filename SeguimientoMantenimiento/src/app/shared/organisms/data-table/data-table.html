@@ -3,14 +3,14 @@
     <thead class="bg-transparent text-[10px] font-mono uppercase tracking-wider text-slate-400 border-b border-white/5">
     <tr>
       <th class="p-4 w-10 text-center">Alertas</th>
-      @for (col of columns; track col.key) {
+      @for (col of columns(); track col.key) {
         <th class="p-4 font-bold">{{ col.label }}</th>
       }
       <th class="p-4 text-center w-32 font-bold uppercase tracking-wider">ACCIONES</th>
     </tr>
     </thead>
     <tbody class="divide-y divide-transparent font-sans">
-      @for (row of data; track row.idTicket) {
+      @for (row of data(); track row.idTicket) {
         <tr class="hover:bg-white/[0.01] transition-colors group">
 
           <td class="p-4 text-center">
@@ -26,7 +26,7 @@
             }
           </td>
 
-          @for (col of columns; track col.key) {
+          @for (col of columns(); track col.key) {
             <td class="p-4 align-middle">
               @switch (col.type) {
                 @case ('code') {
@@ -44,7 +44,7 @@
                 @case ('avatar') {
                   <div class="flex items-center gap-2">
                     <div class="w-5 h-5 rounded-full bg-indigo-600/30 border border-indigo-500/30 flex items-center justify-center text-[9px] font-bold font-mono text-indigo-300">
-                      {{ row[col.key]?.substring(4, 6) | uppercase }}
+                      {{ row[col.key]?.substring(0, 2) | uppercase }}
                     </div>
                     <span class="font-mono text-[11px] text-slate-300">{{ row[col.key] }}</span>
                   </div>

@@ -1,7 +1,11 @@
 import { TicketStatus } from '../../models/enums/ticket-status';
+import { Ticket } from '../../models/interfaces/ticket.model';
 
 export interface ChartMetrics {
   totalTickets: number;
+  urgentesSinHU: number;
+  urgentesConHU: number;
+  totalSinHU: number;
   enDesarrollo: number;
   enQA: number;
   certificados: number;
@@ -34,8 +38,35 @@ export interface ChartMetrics {
   };
 }
 
-export function calculateMetrics(data: any[], usuarioFirmaId: string): ChartMetrics {
+export function calculateMetrics(data: Ticket[], usuarioFirmaId: string): ChartMetrics {
   const totalTickets = data.length;
+  const withoutHU = data.filter((t) => !t.historiaUsuario || t.historiaUsuario.trim() === '');
+  const urgentesSinHU = withoutHU.filter((t) =>
+    [
+      TicketStatus.EN_ANALISIS,
+      TicketStatus.EN_PROCESO,
+      TicketStatus.BLOQUEO,
+      TicketStatus.EN_REVISION_DESARROLLO,
+      TicketStatus.APROBADO_PARA_QA,
+      TicketStatus.DESPLIEGUE_A_QA,
+      TicketStatus.EN_REVISION_QA,
+      TicketStatus.PENDIENTE_CERTIFICACION,
+    ].includes(t.estadoActual),
+  ).length;
+  const urgentesConHU = data.filter(
+    (t) =>
+      !!t.historiaUsuario?.trim() &&
+      [
+        TicketStatus.EN_ANALISIS,
+        TicketStatus.EN_PROCESO,
+        TicketStatus.BLOQUEO,
+        TicketStatus.EN_REVISION_DESARROLLO,
+        TicketStatus.APROBADO_PARA_QA,
+        TicketStatus.DESPLIEGUE_A_QA,
+        TicketStatus.EN_REVISION_QA,
+        TicketStatus.PENDIENTE_CERTIFICACION,
+      ].includes(t.estadoActual),
+  ).length;
 
   const enDesarrollo = data.filter((t) =>
     [
@@ -66,7 +97,7 @@ export function calculateMetrics(data: any[], usuarioFirmaId: string): ChartMetr
     [TicketStatus.BLOQUEO, TicketStatus.DEVUELTO, TicketStatus.ROLLBACK].includes(t.estadoActual)
   ).length;
 
-  const misTickets = data.filter((t) => t.desarrolladorAsignadoId === usuarioFirmaId);
+  const misTickets = data.filter((t) => String(t.idUsuarioAsignado) === String(usuarioFirmaId));
   const tckAsignadosDev = misTickets.length;
   const tckActivosWIPDev = misTickets.filter((t) =>
     [TicketStatus.EN_ANALISIS, TicketStatus.EN_PROCESO].includes(t.estadoActual)
@@ -135,6 +166,9 @@ export function calculateMetrics(data: any[], usuarioFirmaId: string): ChartMetr
 
   return {
     totalTickets,
+    urgentesSinHU,
+    urgentesConHU,
+    totalSinHU: withoutHU.length,
     enDesarrollo,
     enQA,
     certificados,

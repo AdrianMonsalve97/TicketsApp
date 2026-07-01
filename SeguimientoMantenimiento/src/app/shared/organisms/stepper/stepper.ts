@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, TemplateRef, OnInit } from '@angular/core';
+import { Component, TemplateRef, OnInit, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export interface StepItemConfig {
@@ -10,38 +10,38 @@ export interface StepItemConfig {
 
 @Component({
   selector: 'app-dynamic-stepper',
-  standalone: true,
   imports: [CommonModule],
   templateUrl: './stepper.html',
   styleUrl: './stepper.css',
 })
 export class DynamicStepperComponent implements OnInit {
-  @Input() stepsConfig: StepItemConfig[] = [];
-  @Input() initialValue: number = 1;
+  stepsConfig = input<StepItemConfig[]>([]);
+  initialValue = input(1);
 
-  @Output() onComplete = new EventEmitter<void>();
-  @Output() onStepChange = new EventEmitter<number>();
+  onComplete = output<void>();
+  onStepChange = output<number>();
 
   public currentStepIndex = 0;
 
   ngOnInit() {
-    this.currentStepIndex = this.initialValue - 1;
+    this.currentStepIndex = this.initialValue() - 1;
   }
 
   public activateCallback = (nextValue: number): void => {
+    const stepsConfig = this.stepsConfig();
     const targetIndex = nextValue - 1;
     if (targetIndex > this.currentStepIndex) {
-      const currentStep = this.stepsConfig[this.currentStepIndex];
+      const currentStep = stepsConfig[this.currentStepIndex];
       if (currentStep && currentStep.isValid === false) {
         return;
       }
     }
-    if (nextValue > this.stepsConfig.length) {
+    if (nextValue > stepsConfig.length) {
       this.onComplete.emit();
       return;
     }
 
-    if (targetIndex >= 0 && targetIndex < this.stepsConfig.length) {
+    if (targetIndex >= 0 && targetIndex < stepsConfig.length) {
       this.currentStepIndex = targetIndex;
       this.onStepChange.emit(nextValue);
     }

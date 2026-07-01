@@ -1,9 +1,11 @@
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { providePrimeNG } from 'primeng/config';
 import { routes } from './app.routes';
 import Nora from '@primeuix/themes/nora';
 import { definePreset } from '@primeuix/themes';
+import { authInterceptor } from './core/interceptors/auth.interceptor';
 
 export const InterTheme = definePreset(Nora, {
   semantic: {
@@ -43,6 +45,7 @@ export const InterTheme = definePreset(Nora, {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
+    provideHttpClient(withInterceptors([authInterceptor])),
     provideRouter(routes),
     providePrimeNG({
       theme: {

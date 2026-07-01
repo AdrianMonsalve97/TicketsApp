@@ -1,39 +1,36 @@
 // Archivo: src/app/shared/molecules/modal/modal.ts
 import {
   Component,
-  EventEmitter,
-  Input,
-  Output,
-  OnChanges,
-  SimpleChanges,
   OnDestroy,
+  effect,
+  input,
+  output,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-modal',
-  standalone: true,
   imports: [CommonModule],
   templateUrl: './modal.html',
   styleUrl: './modal.css',
 })
-export class Modal implements OnChanges, OnDestroy {
-  @Input() visible = false;
-  @Input() title = '';
-  @Input() maxWidth = '';
-  @Input() size: 'sm' | 'md' | 'lg' | 'xl' | 'full' = 'md';
+export class Modal implements OnDestroy {
+  visible = input(false);
+  title = input('');
+  maxWidth = input('');
+  size = input<'sm' | 'md' | 'lg' | 'xl' | 'full'>('md');
 
-  @Output() close = new EventEmitter<void>();
-  @Output() visibleChange = new EventEmitter<boolean>();
+  close = output<void>();
+  visibleChange = output<boolean>();
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['visible']) {
-      if (this.visible) {
+  constructor() {
+    effect(() => {
+      if (this.visible()) {
         document.body.classList.add('modal-hud-active');
-      } else if (!changes['visible'].firstChange) {
+      } else {
         document.body.classList.remove('modal-hud-active');
       }
-    }
+    });
   }
 
   ngOnDestroy(): void {
@@ -41,8 +38,9 @@ export class Modal implements OnChanges, OnDestroy {
   }
 
   public get sizeClass(): string {
-    if (this.maxWidth && this.maxWidth.trim() !== '') return this.maxWidth;
-    switch (this.size) {
+    const maxWidth = this.maxWidth();
+    if (maxWidth && maxWidth.trim() !== '') return maxWidth;
+    switch (this.size()) {
       case 'sm':
         return 'max-w-sm';
       case 'md':
@@ -59,7 +57,6 @@ export class Modal implements OnChanges, OnDestroy {
   }
 
   cerrarModal(): void {
-    this.visible = false;
     this.visibleChange.emit(false);
     this.close.emit();
   }

@@ -6,20 +6,19 @@ import { User } from '../../models/interfaces/user.model';
 import { Roles } from '../../models/enums/roles';
 import { UiGlobalService } from '../../core/services/ui-global';
 import { DataTableComponent } from '../../shared/organisms/data-table/data-table';
-import { UserMockService } from '../../core/services/user-mock';
-import { AuthMockService } from '../../core/services/auth-mock';
+import { UserService } from '../../core/services/user.service';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-user-management',
-  standalone: true,
   imports: [CommonModule, FormsModule, Modal, DataTableComponent],
   templateUrl: './user-management.html',
   styleUrl: './user-management.css',
 })
 export class UserManagementComponent implements OnInit {
   public uiService = inject(UiGlobalService);
-  private userService = inject(UserMockService);
-  private authService = inject(AuthMockService);
+  private userService = inject(UserService);
+  private authService = inject(AuthService);
 
   public RolesEnum = Roles;
 

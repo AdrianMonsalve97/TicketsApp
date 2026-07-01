@@ -1,19 +1,15 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { AuthMockService } from '../services/auth-mock';
+import { AuthService } from '../services/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthMockService);
-  const currentRole = authService.getCurrentRole();
+  const authService = inject(AuthService);
+  const token = authService.getToken();
 
-  // En el mock inicial usamos Hamilton como ID de prueba
-  const userId = 'DEV-Hamilton'; 
-
-  if (userId && currentRole) {
+  if (token) {
     const clonedRequest = req.clone({
       setHeaders: {
-        'X-User-Id': userId,
-        'X-User-Role': currentRole,
+        Authorization: `Bearer ${token}`,
       },
     });
     return next(clonedRequest);

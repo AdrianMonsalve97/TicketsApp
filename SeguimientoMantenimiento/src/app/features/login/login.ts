@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -11,6 +12,10 @@ import { FormsModule } from '@angular/forms';
 })
 export class Login {
   private router = inject(Router);
+  private authService = inject(AuthService);
+
+  public isLoading = false;
+  public errorMessage = '';
 
   credenciales = {
     nombreUsuario: '',
@@ -19,8 +24,15 @@ export class Login {
 
   ejecutarLogin() {
     if (this.credenciales.nombreUsuario && this.credenciales.password) {
-      console.log('Firma criptográfica válida para:', this.credenciales.nombreUsuario);
-      this.router.navigate(['/dashboard']);
+      this.isLoading = true;
+      this.errorMessage = '';
+      this.authService.login(this.credenciales.nombreUsuario, this.credenciales.password).subscribe({
+        next: () => this.router.navigate(['/dashboard']),
+        error: () => {
+          this.errorMessage = 'No fue posible iniciar sesion. Verifica usuario y contrasena.';
+          this.isLoading = false;
+        },
+      });
     }
   }
 }

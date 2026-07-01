@@ -1,6 +1,6 @@
 <div class="space-y-6 relative z-10 w-full text-slate-200">
 
-  @switch (usuarioRol) {
+  @switch (usuarioRol()) {
 
     @case ('PMO_LT') {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -41,10 +41,18 @@
         </div>
       </div>
 
+      <div class="crypto-glass-card rounded-2xl p-4 flex items-center justify-between">
+        <div>
+          <span class="text-[10px] text-amber-400 font-bold uppercase tracking-wider block">Tickets Urgentes sin HU</span>
+          <h2 class="text-xl font-bold text-amber-300 font-mono mt-0.5">{{ urgentesSinHU }} <span class="text-xs text-amber-500/60 font-sans font-normal">críticos</span></h2>
+        </div>
+        <span class="text-[9px] text-amber-300 bg-amber-500/10 px-2 py-1 rounded font-mono border border-amber-500/20">HU PENDIENTE</span>
+      </div>
+
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
         <div class="crypto-glass-card rounded-2xl p-5 flex flex-col justify-between lg:col-span-2 relative">
           <div>
-            <div class="flex justify-between items-center mb-4">
+              <div class="flex justify-between items-center mb-4">
               <h4 class="text-xs font-bold uppercase font-mono text-slate-300">Estabilidad de Entrega (Cumulative Flow)</h4>
               <div class="cursor-pointer text-slate-500 hover:text-indigo-400 transition-colors relative" (click)="alternarTooltip('estabilidad', $event)">
                 <i class="pi pi-info-circle text-xs"></i>
@@ -60,7 +68,7 @@
               @if (graficoEstabilidadFlujo) { <apx-chart [series]="graficoEstabilidadFlujo.series" [chart]="graficoEstabilidadFlujo.chart" [colors]="graficoEstabilidadFlujo.colors" [stroke]="graficoEstabilidadFlujo.stroke" [fill]="graficoEstabilidadFlujo.fill" [xaxis]="graficoEstabilidadFlujo.xaxis" [grid]="graficoEstabilidadFlujo.grid" [yaxis]="graficoEstabilidadFlujo.yaxis"></apx-chart> }
             </div>
           </div>
-          <p class="text-[10px] text-slate-500 font-mono border-t border-white/5 pt-3 mt-4">* Datos analizados inductivamente según la cadencia actual del Sprint.</p>
+          <p class="text-[10px] text-slate-500 font-mono border-t border-white/5 pt-3 mt-4">* Flujo derivado de estados reales del backlog y tickets sin HU detectados en la cola urgente.</p>
         </div>
 
         <div class="crypto-glass-card rounded-2xl p-5 flex flex-col justify-between">
@@ -173,7 +181,7 @@
               </div>
             </div>
           </div>
-          <div class="text-[12px] text-white font-mono mt-4 text-right">ID FIRMA: <span class="text-indigo-400 font-bold">{{ usuarioFirmaId }}</span></div>
+          <div class="text-[12px] text-white font-mono mt-4 text-right">ID FIRMA: <span class="text-indigo-400 font-bold">{{ usuarioFirmaId() }}</span></div>
         </div>
       </div>
     }

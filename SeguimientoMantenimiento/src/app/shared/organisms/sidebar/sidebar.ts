@@ -2,19 +2,18 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavigationStateService } from '../../../core/services/navigation-state';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { AuthMockService } from '../../../core/services/auth-mock';
+import { AuthService } from '../../../core/services/auth.service';
 import { Roles } from '../../../models/enums/roles';
 
 @Component({
   selector: 'app-sidebar',
-  standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css',
 })
 export class SidebarComponent {
   protected navState = inject(NavigationStateService);
-  private authService = inject(AuthMockService);
+  private authService = inject(AuthService);
 
   public RolesEnum = Roles;
   public usuarioLogueadoRol = computed(() => this.authService.currentRole());

@@ -1,18 +1,17 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AuthMockService } from '../../core/services/auth-mock';
+import { AuthService } from '../../core/services/auth.service';
 import { User } from '../../models/interfaces/user.model';
 
 @Component({
   selector: 'app-user-profile',
-  standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './user-profile.html',
   styleUrl: './user-profile.css'
 })
 export class UserProfile implements OnInit {
-  private authService = inject(AuthMockService);
+  private authService = inject(AuthService);
 
   isEditable: boolean = false;
 

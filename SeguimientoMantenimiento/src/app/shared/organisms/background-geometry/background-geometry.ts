@@ -11,7 +11,6 @@ interface LightOrb {
 
 @Component({
   selector: 'app-background-geometry',
-  standalone: true,
   templateUrl: './background-geometry.html',
   styleUrl: './background-geometry.css',
 })

@@ -12,6 +12,7 @@ export interface Ticket {
   idUsuarioAsignado: number;
 
   desarrolladorAsignadoId?: string;
+  desarrolladorAsignadoNombre?: string;
   qaAsignadoId?: string;
   ltAsignadoId?: string;
   historiaUsuario?: string;

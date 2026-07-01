@@ -23,29 +23,31 @@ export function buildAlertasCriticas(metrics: ChartMetrics) {
 }
 
 export function buildEstabilidadFlujo(metrics: ChartMetrics) {
+  const wip = Math.max(metrics.enDesarrollo, 0);
+  const qa = Math.max(metrics.enQA, 0);
+  const done = Math.max(metrics.certificados, 0);
+  const blocked = Math.max(metrics.bloqueados, 0);
   return {
     series: [
       {
         name: 'WIP',
-        data: [
-          metrics.enDesarrollo + 2,
-          metrics.enDesarrollo + 1,
-          metrics.enDesarrollo + 3,
-          metrics.enDesarrollo,
-        ],
+        data: [wip, wip, wip, wip],
       },
       {
-        name: 'Throughput',
-        data: [
-          metrics.certificados - 2,
-          metrics.certificados - 1,
-          metrics.certificados,
-          metrics.certificados,
-        ],
+        name: 'QA',
+        data: [qa, qa, qa, qa],
+      },
+      {
+        name: 'Done',
+        data: [done, done, done, done],
+      },
+      {
+        name: 'Blocked',
+        data: [blocked, blocked, blocked, blocked],
       },
     ],
     chart: { height: 340, type: 'area', toolbar: { show: false }, foreColor: '#64748b' },
-    colors: ['#6366f1', '#00f2fe'],
+    colors: ['#6366f1', '#a855f7', '#10b981', '#f43f5e'],
     stroke: { curve: 'smooth', width: 2.5 },
     fill: { type: 'gradient', gradient: { opacityFrom: 0.16, opacityTo: 0.0 } },
     xaxis: { categories: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'] },
@@ -270,12 +272,21 @@ export function buildEficienciaCompromiso(metrics: ChartMetrics, usuarioRol: str
   };
 }
 
-export function buildResolucionIngenieros() {
+export function buildResolucionIngenieros(metrics: ChartMetrics, usuarioNombre: string) {
+  const rendimiento = Math.max(
+    0,
+    Math.min(100, Math.round(metrics.kpiEficienciaSprintDev || metrics.kpiEficienciaCertificacion || 0)),
+  );
   return {
-    series: [{ name: 'ANS', data: [94, 88, 91] }],
+    series: [
+      {
+        name: 'Rendimiento',
+        data: [rendimiento],
+      },
+    ],
     chart: { height: 130, type: 'bar', toolbar: { show: false }, foreColor: '#64748b' },
     colors: ['#00f2fe'],
     plotOptions: { bar: { horizontal: true, barHeight: '25%', borderRadius: 4 } },
-    xaxis: { categories: ['Hamilton', 'Brayan', 'Miguel'] },
+    xaxis: { categories: [usuarioNombre] },
   };
 }
