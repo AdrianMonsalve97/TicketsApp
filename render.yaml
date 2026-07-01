@@ -1,0 +1,14 @@
+services:
+  - type: web
+    runtime: static
+    name: casetrack-frontend
+    rootDir: SeguimientoMantenimiento
+    buildCommand: npm ci && npm run render:build
+    staticPublishPath: dist/SeguimientoMantenimiento/browser
+    envVars:
+      - key: RENDER_API_BASE_URL
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
