@@ -1,8 +1,8 @@
 import { Component, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { Topbar } from './core/layout/topbar/topbar';
-import { SidebarComponent } from './shared/organism/sidebar/sidebar';
-import { BackgroundGeometryComponent } from './shared/organism/background-geometry/background-geometry';
+import { SidebarComponent } from './shared/organisms/sidebar/sidebar';
+import { BackgroundGeometryComponent } from './shared/organisms/background-geometry/background-geometry';
 import { NavigationStateService } from './core/services/navigation-state';
 import { filter } from 'rxjs';
 

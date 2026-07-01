@@ -3,7 +3,7 @@ import { RamasModel } from './ramas.model';
 
 export interface RamasTicketModel {
   idRamaTicket: string;
-  idTicket: Ticket;
-  idRama: RamasModel;
+  idTicket: string;
+  idRama: string;
   fechaAsignacion: Date;
 }

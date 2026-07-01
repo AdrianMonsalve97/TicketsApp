@@ -1,5 +1,5 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -9,18 +9,13 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
-export class Login implements OnInit {
+export class Login {
   private router = inject(Router);
-  private activatedRoute = inject(ActivatedRoute);
 
   credenciales = {
     nombreUsuario: '',
     password: '',
   };
-
-  ngOnInit() {
-    // Si necesitas inicializar tracking de la ruta aquí
-  }
 
   ejecutarLogin() {
     if (this.credenciales.nombreUsuario && this.credenciales.password) {

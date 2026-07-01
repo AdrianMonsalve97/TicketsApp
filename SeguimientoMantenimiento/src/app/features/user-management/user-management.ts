@@ -5,7 +5,9 @@ import { Modal } from '../../shared/molecules/modal/modal';
 import { User } from '../../models/interfaces/user.model';
 import { Roles } from '../../models/enums/roles';
 import { UiGlobalService } from '../../core/services/ui-global';
-import { DataTableComponent } from '../../shared/organism/data-table/data-table';
+import { DataTableComponent } from '../../shared/organisms/data-table/data-table';
+import { UserMockService } from '../../core/services/user-mock';
+import { AuthMockService } from '../../core/services/auth-mock';
 
 @Component({
   selector: 'app-user-management',
@@ -16,10 +18,13 @@ import { DataTableComponent } from '../../shared/organism/data-table/data-table'
 })
 export class UserManagementComponent implements OnInit {
   public uiService = inject(UiGlobalService);
+  private userService = inject(UserMockService);
+  private authService = inject(AuthMockService);
+
   public RolesEnum = Roles;
 
-  public usuarioLogueadoRol = signal<Roles>(Roles.Product_Owner);
-  public usuarioLogueadoId = signal<string>('USR-102');
+  public usuarioLogueadoRol = computed(() => this.authService.currentRole());
+  public usuarioLogueadoId = computed(() => this.authService.currentUser()?.idUsuario ?? '');
 
   public userTableColumns = [
     { key: 'idUsuario', label: 'ID SISTEMA', type: 'code' as const },
@@ -30,58 +35,22 @@ export class UserManagementComponent implements OnInit {
     { key: 'activo', label: 'ESTADO', type: 'badge' as const },
   ];
 
-  public usuarios = signal<User[]>([
-    {
-      idUsuario: 'USR-101',
-      nombreUsuario: 'pmo.admin',
-      nombres: 'Director',
-      apellidos: 'De Proyecto',
-      rol: Roles.Product_Owner,
-      activo: true,
-      password: '123456',
-      avatarUrl: '',
-    },
-    {
-      idUsuario: 'USR-102',
-      nombreUsuario: 'hamilton.dev',
-      nombres: 'Hamilton',
-      apellidos: 'Depablos',
-      rol: Roles.Desarrollador,
-      activo: true,
-      password: '123456',
-      avatarUrl: '',
-    },
-    {
-      idUsuario: 'USR-103',
-      nombreUsuario: 'brayan.qa',
-      nombres: 'Brayan',
-      apellidos: 'Testing',
-      rol: Roles.Qa,
-      activo: true,
-      password: '123456',
-      avatarUrl: '',
-    },
-    {
-      idUsuario: 'USR-104',
-      nombreUsuario: 'miguel.lt',
-      nombres: 'Miguel',
-      apellidos: 'Líder',
-      rol: Roles.Lider_Tecnico,
-      password: '123456',
-      activo: false,
-      avatarUrl: '',
-    },
-  ]);
+  public usuarios = signal<User[]>([]);
 
   public modalAbierto = false;
   public modoEdicion = false;
   public usuarioSeleccionado: User = this.inicializarUsuario();
 
   ngOnInit(): void {
-    if (this.usuarioLogueadoRol() !== Roles.Product_Owner) {
-      const propio = this.usuarios().find((u) => u.idUsuario === this.usuarioLogueadoId());
-      if (propio) this.abrirEditor(propio);
-    }
+    this.userService.getUsers().subscribe({
+      next: (data) => {
+        this.usuarios.set(data);
+        if (this.usuarioLogueadoRol() !== Roles.Product_Owner) {
+          const propio = data.find((u) => u.idUsuario === this.usuarioLogueadoId());
+          if (propio) this.abrirEditor(propio);
+        }
+      }
+    });
   }
 
   public kpis = computed(() => {
@@ -118,24 +87,30 @@ export class UserManagementComponent implements OnInit {
 
   public guardarUsuario(): void {
     if (this.modoEdicion) {
-      this.usuarios.update((list) =>
-        list.map((u) =>
-          u.idUsuario === this.usuarioSeleccionado.idUsuario ? { ...this.usuarioSeleccionado } : u,
-        ),
-      );
+      this.userService.updateUser(this.usuarioSeleccionado).subscribe({
+        next: (updated) => {
+          this.usuarios.update((list) =>
+            list.map((u) => (u.idUsuario === updated.idUsuario ? updated : u))
+          );
+        }
+      });
     } else {
-      const nuevo: User = {
-        ...this.usuarioSeleccionado,
-        idUsuario: 'USR-' + Math.floor(Math.random() * 900 + 100),
-      };
-      this.usuarios.update((list) => [nuevo, ...list]);
+      this.userService.createUser(this.usuarioSeleccionado).subscribe({
+        next: (created) => {
+          this.usuarios.update((list) => [created, ...list]);
+        }
+      });
     }
     this.modalAbierto = false;
   }
 
   public eliminarUsuario(usuario: User): void {
     if (this.usuarioLogueadoRol() !== Roles.Product_Owner) return;
-    this.usuarios.update((list) => list.filter((u) => u.idUsuario !== usuario.idUsuario));
+    this.userService.deleteUser(usuario.idUsuario).subscribe({
+      next: () => {
+        this.usuarios.update((list) => list.filter((u) => u.idUsuario !== usuario.idUsuario));
+      }
+    });
   }
 
   private inicializarUsuario(): User {

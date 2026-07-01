@@ -1,8 +1,8 @@
-import { Component, inject, signal, ViewChild } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Drawer } from 'primeng/drawer';
 import { NavigationStateService } from '../../../core/services/navigation-state';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthMockService } from '../../../core/services/auth-mock';
 import { Roles } from '../../../models/enums/roles';
 
 @Component({
@@ -14,10 +14,10 @@ import { Roles } from '../../../models/enums/roles';
 })
 export class SidebarComponent {
   protected navState = inject(NavigationStateService);
-  public RolesEnum = Roles;
-  public usuarioLogueadoRol = signal<Roles>(Roles.Product_Owner);
+  private authService = inject(AuthMockService);
 
-  @ViewChild('drawerRef') drawerRef!: Drawer;
+  public RolesEnum = Roles;
+  public usuarioLogueadoRol = computed(() => this.authService.currentRole());
 
   get visible(): boolean {
     return this.navState.isSidebarVisible();

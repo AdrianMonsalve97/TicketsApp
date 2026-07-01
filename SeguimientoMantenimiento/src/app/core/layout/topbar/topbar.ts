@@ -1,5 +1,5 @@
 import { Component, inject, ViewChild } from '@angular/core';
-import { CommonModule, SlicePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthMockService } from '../../services/auth-mock';
 import { Roles } from '../../../models/enums/roles';
@@ -31,7 +31,9 @@ export class Topbar {
   @ViewChild('op') popoverComponent!: Popover;
   isDarkMode: boolean = true;
 
-  selectedRole: Roles = this.authService.getCurrentRole();
+  get selectedRole(): Roles {
+    return this.authService.currentRole();
+  }
 
   onRoleChange(newRole: Roles) {
     this.authService.changeRole(newRole);

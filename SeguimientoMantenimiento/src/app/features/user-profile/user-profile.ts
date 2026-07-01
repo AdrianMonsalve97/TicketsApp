@@ -20,16 +20,21 @@ export class UserProfile implements OnInit {
   private backupUser!: User;
 
   ngOnInit() {
-    this.currentUser = {
-      idUsuario: '11233233213312',
-      nombreUsuario: 'aelsner_exec',
-      nombres: 'Amy',
-      apellidos: 'Elsner',
-      rol: this.authService.getCurrentRole(),
-      avatarUrl: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png',
-      password: '123456',
-      activo: true
-    };
+    const userSession = this.authService.currentUser();
+    if (userSession) {
+      this.currentUser = { ...userSession };
+    } else {
+      this.currentUser = {
+        idUsuario: '11233233213312',
+        nombreUsuario: 'aelsner_exec',
+        nombres: 'Amy',
+        apellidos: 'Elsner',
+        rol: this.authService.getCurrentRole(),
+        avatarUrl: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png',
+        password: '123456',
+        activo: true
+      };
+    }
 
     this.cloneBackup();
   }

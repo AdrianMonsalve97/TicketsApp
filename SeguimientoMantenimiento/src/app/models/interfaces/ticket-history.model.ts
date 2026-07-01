@@ -7,5 +7,5 @@ export interface TicketHistory {
   idEstadoDestino: TicketStatus;
   idUsuarioAccion: string;
   fechaCambio: Date;
-  Comentario?: string;
+  comentario?: string;
 }

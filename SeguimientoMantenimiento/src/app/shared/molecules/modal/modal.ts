@@ -8,12 +8,12 @@ import {
   SimpleChanges,
   OnDestroy,
 } from '@angular/core';
-import { NgClass, CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-modal',
   standalone: true,
-  imports: [NgClass, CommonModule],
+  imports: [CommonModule],
   templateUrl: './modal.html',
   styleUrl: './modal.css',
 })

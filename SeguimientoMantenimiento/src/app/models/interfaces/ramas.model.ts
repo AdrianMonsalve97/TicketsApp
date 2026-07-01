@@ -2,7 +2,7 @@ import { Repository } from './repository.model';
 
 export interface RamasModel {
   idRama: string;
-  idRepositorio: Repository;
+  idRepositorio: string;
   nombreRama: string;
   fechaCreacion: Date;
 }

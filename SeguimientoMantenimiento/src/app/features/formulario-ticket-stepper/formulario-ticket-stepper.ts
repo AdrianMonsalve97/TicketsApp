@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { DynamicStepperComponent, StepItemConfig } from '../../shared/organism/stepper/stepper';
+import { DynamicStepperComponent, StepItemConfig } from '../../shared/organisms/stepper/stepper';
 import { TicketStatus } from '../../models/enums/ticket-status';
 
 
@@ -33,7 +33,7 @@ export class FormularioTicketStepperComponent implements OnInit, AfterViewInit {
   public formPasoUno!: FormGroup;
   public formPasoDos!: FormGroup;
   public formPasoTres!: FormGroup;
-  public formPasoFour!: FormGroup;
+  public formPasoCuatro!: FormGroup;
 
   public configuracionPasos: StepItemConfig[] = [];
   public listaEstados = Object.values(TicketStatus);
@@ -57,7 +57,7 @@ export class FormularioTicketStepperComponent implements OnInit, AfterViewInit {
       ltAsignadoId: ['', Validators.required],
     });
 
-    this.formPasoFour = this.fb.group({
+    this.formPasoCuatro = this.fb.group({
       causaRaiz: ['', [Validators.required, Validators.minLength(10)]],
       solucionPropuesta: ['', [Validators.required, Validators.minLength(10)]],
     });
@@ -88,14 +88,14 @@ export class FormularioTicketStepperComponent implements OnInit, AfterViewInit {
           value: 4,
           header: 'Soporte',
           template: this.pasoSoporte,
-          isValid: this.formPasoFour.valid,
+          isValid: this.formPasoCuatro.valid,
         },
       ];
 
       this.formPasoUno.statusChanges.subscribe(() => this.actualizarEstatusPasos());
       this.formPasoDos.statusChanges.subscribe(() => this.actualizarEstatusPasos());
       this.formPasoTres.statusChanges.subscribe(() => this.actualizarEstatusPasos());
-      this.formPasoFour.statusChanges.subscribe(() => this.actualizarEstatusPasos());
+      this.formPasoCuatro.statusChanges.subscribe(() => this.actualizarEstatusPasos());
     });
   }
 
@@ -104,7 +104,7 @@ export class FormularioTicketStepperComponent implements OnInit, AfterViewInit {
       this.configuracionPasos[0].isValid = this.formPasoUno.valid;
       this.configuracionPasos[1].isValid = this.formPasoDos.valid;
       this.configuracionPasos[2].isValid = this.formPasoTres.valid;
-      this.configuracionPasos[3].isValid = this.formPasoFour.valid;
+      this.configuracionPasos[3].isValid = this.formPasoCuatro.valid;
     }
   }
 
@@ -117,7 +117,7 @@ export class FormularioTicketStepperComponent implements OnInit, AfterViewInit {
       ...this.formPasoUno.value,
       ...this.formPasoDos.value,
       ...this.formPasoTres.value,
-      ...this.formPasoFour.value,
+      ...this.formPasoCuatro.value,
       historiaUsuario: valHU && valHU.trim() !== '' ? valHU.trim() : null,
       idTicket: `TCK-${randomId}`,
       codigoCaso: `CASE-2026-${randomId}`,

@@ -12,12 +12,17 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TicketStatus } from '../../models/enums/ticket-status';
 import { Ticket } from '../../models/interfaces/ticket.model';
-import { DataTableComponent } from '../../shared/organism/data-table/data-table';
+import { DataTableComponent } from '../../shared/organisms/data-table/data-table';
 import { Modal } from '../../shared/molecules/modal/modal';
 import { AnalyticsChartsComponent } from '../../shared/molecules/analytics-charts/analytics-charts';
 import { TicketMockService } from '../../core/services/ticket-mock';
 import { UiGlobalService } from '../../core/services/ui-global';
 import { FormularioTicketStepperComponent } from '../formulario-ticket-stepper/formulario-ticket-stepper';
+
+import { StatusColors } from '../../models/constants/status-colors';
+
+import { AuthMockService } from '../../core/services/auth-mock';
+import { tieneFugaInformacion } from '../../models/utils/ticket.utils';
 
 @Component({
   selector: 'app-dashboard',
@@ -36,11 +41,26 @@ import { FormularioTicketStepperComponent } from '../formulario-ticket-stepper/f
 export class Dashboard implements OnInit, AfterViewInit {
   private ticketService = inject(TicketMockService);
   public uiService = inject(UiGlobalService);
+  private authService = inject(AuthMockService);
 
   @ViewChild('tableContainer') tableContainer!: ElementRef;
 
   public usuarioRol = signal<'PMO_LT' | 'DEV' | 'QA'>('PMO_LT');
-  public usuarioFirmaId = signal<string>('DEV-Hamilton');
+  public usuarioFirmaId = computed(() => this.authService.currentUser()?.idUsuario ?? 'DEV-Hamilton');
+
+  constructor() {
+    // Escuchar cambios de rol del auth service y mapearlo al rol del dashboard
+    const roleMapping: Record<string, 'PMO_LT' | 'DEV' | 'QA'> = {
+      'PRODUCT OWNER': 'PMO_LT',
+      'LIDER TECNICO': 'PMO_LT',
+      'DESARROLLADOR': 'DEV',
+      'QA': 'QA'
+    };
+
+    // Actualizar signal basado en el rol actual
+    const currentRole = this.authService.currentRole();
+    this.usuarioRol.set(roleMapping[currentRole] || 'PMO_LT');
+  }
 
   public tickets = signal<Ticket[]>([]);
   public searchQuery = signal<string>('');
@@ -82,48 +102,12 @@ export class Dashboard implements OnInit, AfterViewInit {
   }
 
   public obtenerColorEstado(estado: TicketStatus | string | undefined): string {
-    const fallbackClasses =
-      'bg-[#0e0e12] text-slate-400 border border-slate-500/20 font-mono tracking-wide';
-    if (!estado) return fallbackClasses;
-
-    switch (estado) {
-      case TicketStatus.EN_PROCESO:
-      case TicketStatus.EN_ANALISIS:
-        return 'bg-[#080d1a] text-[#a9c7ff] border border-[#3b82f6]/40 font-mono tracking-wide';
-        case TicketStatus.BLOQUEO:
-      case TicketStatus.ROLLBACK:
-        return 'bg-[#1a080d] text-[#ff6b8b] border border-[#ef4444]/40 font-mono tracking-wide';
-
-      case TicketStatus.CERTIFICADO:
-      case TicketStatus.DESPLIEGUE_A_PRODUCCION:
-      case TicketStatus.FINALIZADO:
-        return 'bg-[#081a10] text-[#a7f3d0] border border-[#10b981]/40 font-mono tracking-wide';
-
-      case TicketStatus.DESPLIEGUE_A_DESARROLLO:
-        return 'bg-[#14081a] text-[#e9d5ff] border border-[#a855f7]/40 font-mono tracking-wide';
-
-      case TicketStatus.EN_REVISION_DESARROLLO:
-      case TicketStatus.EN_REVISION_QA:
-        return 'bg-[#1a1908] text-[#fef08a] border border-[#eab308]/40 font-mono tracking-wide';
-
-      case TicketStatus.APROBADO_PARA_QA:
-      case TicketStatus.DESPLIEGUE_A_QA:
-        return 'bg-[#081a18] text-[#99f6e4] border border-[#14b8a6]/40 font-mono tracking-wide';
-
-      case TicketStatus.PENDIENTE_CERTIFICACION:
-        return 'bg-[#1a1108] text-[#fed7aa] border border-[#f97316]/40 font-mono tracking-wide';
-
-      case TicketStatus.DEVUELTO:
-        return 'bg-[#1a0814] text-[#fbcfe8] border border-[#ec4899]/40 font-mono tracking-wide';
-
-      default:
-        return fallbackClasses;
-    }
+    if (!estado) return 'bg-[#0e0e12] text-slate-400 border border-slate-500/20 font-mono tracking-wide';
+    return StatusColors[estado] || 'bg-[#0e0e12] text-slate-400 border border-slate-500/20 font-mono tracking-wide';
   }
 
   public tieneFugaInformacion(ticket: Ticket | null): boolean {
-    if (!ticket) return false;
-    return !ticket.historiaUsuario || ticket.historiaUsuario.trim() === '';
+    return tieneFugaInformacion(ticket);
   }
 
   public ticketsFiltradosPorRol = computed(() => {
