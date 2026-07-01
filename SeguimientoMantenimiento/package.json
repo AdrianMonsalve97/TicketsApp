@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "render:build": "node scripts/write-api-config.mjs && ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

@@ -1,0 +1,68 @@
+name: Frontend CI and Render Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'SeguimientoMantenimiento/**'
+      - 'render.yaml'
+      - '.github/workflows/frontend-render.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'SeguimientoMantenimiento/**'
+      - 'render.yaml'
+      - '.github/workflows/frontend-render.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Angular frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: SeguimientoMantenimiento
+    env:
+      RENDER_API_BASE_URL: ${{ vars.RENDER_API_BASE_URL || 'https://localhost:7002/api' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: SeguimientoMantenimiento/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run render:build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: casetrack-frontend
+          path: SeguimientoMantenimiento/dist/SeguimientoMantenimiento/browser
+          if-no-files-found: error
+
+  deploy:
+    name: Trigger Render deploy
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Trigger deploy hook
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL is not configured; skipping Render deploy trigger."
+            exit 0
+          fi
+
+          curl --fail --request POST "$RENDER_DEPLOY_HOOK_URL"
