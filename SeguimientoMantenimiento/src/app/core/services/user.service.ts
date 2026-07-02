@@ -3,21 +3,10 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { Roles } from '../../models/enums/roles';
 import { User } from '../../models/interfaces/user.model';
-import { API_BASE_URL, ApiResponse } from './api.config';
-
-interface UsuarioDto {
-  idUsuario: number;
-  nombreUsuario: string;
-  nombres: string;
-  apellidos?: string | null;
-  rol: BackendRol;
-  idArea?: string | null;
-  activo: boolean;
-  bloqueado: boolean;
-}
-
-type BackendRol = 'Desarrollador' | 'QA' | 'LiderTecnico' | 'Planner';
-type BackendArea = 1 | 2 | 3;
+import { API_BASE_URL } from './api.config';
+import { ApiResponse } from '../../models/interfaces/api-response.model';
+import { BackendRol } from '../../models/interfaces/auth-api.model';
+import { UsuarioDto } from '../../models/interfaces/user-api.model';
 
 const ROL_BACKEND: Record<Roles, BackendRol> = {
   [Roles.Desarrollador]: 'Desarrollador',
@@ -49,7 +38,7 @@ export class UserService {
         nombres: user.nombres,
         apellidos: user.apellidos,
         rol: this.mapRolToBackend(user.rol),
-        idArea: null as BackendArea | null,
+        idArea: user.idArea ?? null,
         contrasena: user.password || '123456',
       })
       .pipe(map(() => ({ ...user, idUsuario: String(idUsuario), password: '' })));
@@ -62,7 +51,7 @@ export class UserService {
         nombres: user.nombres,
         apellidos: user.apellidos,
         rol: this.mapRolToBackend(user.rol),
-        idArea: null as BackendArea | null,
+        idArea: user.idArea ?? null,
         activo: user.activo,
       })
       .pipe(map(() => ({ ...user, password: '' })));
@@ -84,13 +73,14 @@ export class UserService {
       apellidos: user.apellidos ?? '',
       rol: this.mapRolFromBackend(user.rol),
       activo: user.activo && !user.bloqueado,
+      idArea: user.idArea ? Number(user.idArea) : null,
       password: '',
       avatarUrl: '',
     };
   }
 
-  private mapRolFromBackend(rol: BackendRol): Roles {
-    const roles: Record<BackendRol, Roles> = {
+  private mapRolFromBackend(rol: UsuarioDto['rol']): Roles {
+    const roles: Record<UsuarioDto['rol'], Roles> = {
       Desarrollador: Roles.Desarrollador,
       QA: Roles.Qa,
       LiderTecnico: Roles.Lider_Tecnico,

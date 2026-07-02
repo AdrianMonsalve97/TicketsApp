@@ -4,9 +4,11 @@ export interface User {
   idUsuario: string;
   nombreUsuario: string;
   nombres: string;
-  apellidos:string;
+  apellidos: string;
   rol: Roles;
+  idArea: number | null;
   avatarUrl?: string;
   activo: boolean;
   password: string;
+  debeCambiarContrasena?: boolean;
 }

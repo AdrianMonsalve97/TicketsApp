@@ -35,7 +35,7 @@
 
           <ul class="flex flex-col gap-2.5 max-h-72 overflow-y-auto pr-1">
             @if (notificaciones().length) {
-              @for (notif of notificaciones(); track notif.detail + notif.time) {
+              @for (notif of notificaciones(); track $index) {
                 <li
                   class="p-2.5 bg-black/20 border rounded-xl transition-all cursor-pointer group/item hover:bg-white/[0.04]"
                   [ngClass]="notif.tone === 'info' ? 'border-blue-500/30 hover:border-blue-500/30' : 'border-amber-500/30 hover:border-amber-500/30'"

@@ -11,7 +11,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { DynamicStepperComponent, StepItemConfig } from '../../shared/organisms/stepper/stepper';
-import { CrearTicketRequestBody } from '../../core/services/ticket.service';
+import { CrearTicketRequestBody } from '../../models/interfaces/ticket-api.model';
 import { User } from '../../models/interfaces/user.model';
 
 @Component({
@@ -110,6 +110,7 @@ export class FormularioTicketStepperComponent implements OnInit, AfterViewInit {
         nombres: this.usuarioActualNombre(),
         apellidos: '',
         rol: 'DESARROLLADOR' as never,
+        idArea: null,
         activo: true,
         password: '',
         avatarUrl: '',

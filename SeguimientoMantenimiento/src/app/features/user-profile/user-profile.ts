@@ -29,6 +29,7 @@ export class UserProfile implements OnInit {
         nombres: 'Amy',
         apellidos: 'Elsner',
         rol: this.authService.getCurrentRole(),
+        idArea: null,
         avatarUrl: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png',
         password: '123456',
         activo: true
@@ -49,7 +50,6 @@ export class UserProfile implements OnInit {
 
   guardarInformacion() {
 
-    console.log('Escribiendo cambios aprobados en la base de datos...', this.currentUser);
     this.cloneBackup();
     this.isEditable = false;
   }

@@ -16,11 +16,10 @@ import { DataTableComponent } from '../../shared/organisms/data-table/data-table
 import { Modal } from '../../shared/molecules/modal/modal';
 import { AnalyticsChartsComponent } from '../../shared/molecules/analytics-charts/analytics-charts';
 import {
-  ActualizarTicketRequestBody,
-  CrearTicketRequestBody,
   TicketService,
   ticketStatusToBackend,
 } from '../../core/services/ticket.service';
+import { ActualizarTicketRequestBody, CrearTicketRequestBody } from '../../models/interfaces/ticket-api.model';
 import { UiGlobalService } from '../../core/services/ui-global';
 import { FormularioTicketStepperComponent } from '../formulario-ticket-stepper/formulario-ticket-stepper';
 

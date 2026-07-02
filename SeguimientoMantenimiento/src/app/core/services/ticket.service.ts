@@ -3,66 +3,16 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { Ticket } from '../../models/interfaces/ticket.model';
 import { TicketStatus } from '../../models/enums/ticket-status';
-import { API_BASE_URL, ApiResponse, PageResult } from './api.config';
+import { API_BASE_URL } from './api.config';
 import { TicketFilter } from '../../models/interfaces/ticket-filter.model';
-
-interface TicketDto {
-  idTicket: string;
-  idCaso: string;
-  titulo: string;
-  descripcion: string;
-  ticketEstado: BackendTicketEstado;
-  origen: 'SAIA' | 'GLPI';
-  idUsuarioAsignado: number | null;
-  causaRaiz?: string | null;
-  solucionPropuesta?: string | null;
-  fechaCreacion: string;
-  fechaUltimaActualizacion?: string | null;
-  comentarios: TicketHistoryDto[];
-}
-
-interface TicketHistoryDto {
-  estadoOrigen: BackendTicketEstado;
-  estadoDestino: BackendTicketEstado;
-  idUsuarioAccion?: number | null;
-  comentario?: string | null;
-  fechaAccion: string;
-}
-
-type BackendTicketEstado =
-  | 'EnAnalisis'
-  | 'EnProceso'
-  | 'Bloqueado'
-  | 'Entregado'
-  | 'DespliegueApitesting'
-  | 'EnRevisionApitesting'
-  | 'AprobadoApitesting'
-  | 'DespligueQA'
-  | 'EnRevisionQA'
-  | 'AprobadoQA'
-  | 'PendienteCertificacion'
-  | 'Certificado'
-  | 'DespliegueProduccion'
-  | 'BUG'
-  | 'Rollback';
-
-export interface CrearTicketRequestBody {
-  codigoCaso: string;
-  origenTicket: 1 | 2;
-  titulo: string;
-  descripcion: string;
-  idUsuarioAsignado: number;
-}
-
-export interface ActualizarTicketRequestBody {
-  titulo?: string | null;
-  descripcion?: string | null;
-  nuevoEstado?: BackendTicketEstado | null;
-  idUsuarioAsignado?: number | null;
-  causaRaiz?: string | null;
-  solucionPropuesta?: string | null;
-  comentario?: string | null;
-}
+import { ApiResponse, PageResult } from '../../models/interfaces/api-response.model';
+import {
+  ActualizarTicketRequestBody,
+  BackendTicketEstado,
+  CrearTicketRequestBody,
+  TicketDto,
+  TicketHistoryDto,
+} from '../../models/interfaces/ticket-api.model';
 
 export function ticketStatusToBackend(status: TicketStatus): BackendTicketEstado {
   const statuses: Record<TicketStatus, BackendTicketEstado> = {
@@ -200,15 +150,23 @@ export class TicketService {
 
   private buildTicketParams(filter: TicketFilter): HttpParams {
     let params = new HttpParams();
-    if (filter.pagina !== undefined) params = params.set('pagina', filter.pagina);
-    if (filter.tamanoPagina !== undefined) params = params.set('tamanoPagina', filter.tamanoPagina);
-    if (filter.estado) params = params.set('estado', ticketStatusToBackend(filter.estado));
-    if (filter.origen) params = params.set('origen', filter.origen);
-    if (filter.idUsuarioAsignado !== undefined) params = params.set('idUsuarioAsignado', filter.idUsuarioAsignado);
-    if (filter.codigoCaso) params = params.set('codigoCaso', filter.codigoCaso);
-    if (filter.desde) params = params.set('desde', this.toIsoString(filter.desde));
-    if (filter.hasta) params = params.set('hasta', this.toIsoString(filter.hasta));
-    if (filter.incluirEliminados !== undefined) params = params.set('incluirEliminados', filter.incluirEliminados);
+    const paramsMap: Array<[string, string | number | boolean | undefined]> = [
+      ['pagina', filter.pagina],
+      ['tamanoPagina', filter.tamanoPagina],
+      ['estado', filter.estado ? ticketStatusToBackend(filter.estado) : undefined],
+      ['origen', filter.origen],
+      ['idUsuarioAsignado', filter.idUsuarioAsignado],
+      ['codigoCaso', filter.codigoCaso],
+      ['desde', filter.desde ? this.toIsoString(filter.desde) : undefined],
+      ['hasta', filter.hasta ? this.toIsoString(filter.hasta) : undefined],
+      ['incluirEliminados', filter.incluirEliminados],
+    ];
+
+    for (const [key, value] of paramsMap) {
+      if (value !== undefined && value !== null && value !== '') {
+        params = params.set(key, value);
+      }
+    }
     return params;
   }
 

@@ -4,12 +4,37 @@ import { Observable, map } from 'rxjs';
 import { RamasModel } from '../../models/interfaces/ramas.model';
 import { RamasTicketModel } from '../../models/interfaces/ramas-ticket.model';
 import { Repository } from '../../models/interfaces/repository.model';
-import { API_BASE_URL, ApiResponse } from './api.config';
+import { API_BASE_URL } from './api.config';
+import { ApiResponse } from '../../models/interfaces/api-response.model';
 
 export interface RamaTicketDetalle extends RamasTicketModel {
   idRepositorio: string;
   repositorio: string;
   rama: string;
+}
+
+interface RepositorioDto {
+  idRepositorio: string;
+  nombre: string;
+  link?: string | null;
+  descripcion?: string | null;
+}
+
+interface RamaDto {
+  idRama: string;
+  idRepositorio: string;
+  nombre: string;
+  fechaCreacion: string;
+}
+
+interface RamaTicketDto {
+  idRamaTicket: string;
+  idTicket: string;
+  idRepositorio: string;
+  repositorio: string;
+  idRama: string;
+  rama: string;
+  fechaAsignacion: string;
 }
 
 @Injectable({
@@ -98,28 +123,4 @@ export class RepositorioRamaService {
       fechaAsignacion: new Date(ramaTicket.fechaAsignacion),
     };
   }
-}
-
-interface RepositorioDto {
-  idRepositorio: string;
-  nombre: string;
-  link?: string | null;
-  descripcion?: string | null;
-}
-
-interface RamaDto {
-  idRama: string;
-  idRepositorio: string;
-  nombre: string;
-  fechaCreacion: string;
-}
-
-interface RamaTicketDto {
-  idRamaTicket: string;
-  idTicket: string;
-  idRepositorio: string;
-  repositorio: string;
-  idRama: string;
-  rama: string;
-  fechaAsignacion: string;
 }

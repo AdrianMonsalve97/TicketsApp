@@ -2,7 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { Parametro } from '../../models/interfaces/parametro.model';
-import { API_BASE_URL, ApiResponse } from './api.config';
+import { API_BASE_URL } from './api.config';
+import { ApiResponse } from '../../models/interfaces/api-response.model';
 
 @Injectable({
   providedIn: 'root',
@@ -31,23 +32,7 @@ export class ParametroService {
       incluirInactivos === undefined ? undefined : { incluirInactivos };
 
     return this.http
-      .get<ApiResponse<ParametroDto[]>>(`${API_BASE_URL}/parametros${path}`, { params })
-      .pipe(map((response) => response.data.map((parametro) => this.mapParametro(parametro))));
+      .get<ApiResponse<Parametro[]>>(`${API_BASE_URL}/parametros${path}`, { params })
+      .pipe(map((response) => response.data));
   }
-
-  private mapParametro(parametro: ParametroDto): Parametro {
-    return {
-      id: parametro.id,
-      nombre: parametro.nombre,
-      descripcion: parametro.descripcion ?? undefined,
-      activo: parametro.activo,
-    };
-  }
-}
-
-interface ParametroDto {
-  id: number;
-  nombre: string;
-  descripcion?: string | null;
-  activo: boolean;
 }

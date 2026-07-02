@@ -52,4 +52,8 @@ export class DataTableComponent {
   public tieneFugaInformacion(item: any): boolean {
     return tieneFugaInformacion(item);
   }
+
+  public trackRow(index: number, row: any): string | number {
+    return row?.idTicket ?? row?.idUsuario ?? row?.id ?? index;
+  }
 }

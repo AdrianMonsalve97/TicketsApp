@@ -3,23 +3,9 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { map, tap } from 'rxjs';
 import { Roles } from '../../models/enums/roles';
 import { User } from '../../models/interfaces/user.model';
-import { API_BASE_URL, ApiResponse } from './api.config';
-
-interface LoginResponseDto {
-  token: string;
-  fechaExpiracion: string;
-  usuario: {
-    idUsuario: number;
-    nombreUsuario: string;
-    nombres: string;
-    rol: BackendRol;
-    area?: string | null;
-  };
-}
-
-type BackendRol = 'Desarrollador' | 'QA' | 'LiderTecnico' | 'Planner';
-type BackendArea = 1 | 2 | 3;
-type JwtRoleClaim = 'Desarrollador' | 'QA' | 'LiderTecnico' | 'Planner' | 'Developer' | 'Planner';
+import { API_BASE_URL } from './api.config';
+import { ApiResponse } from '../../models/interfaces/api-response.model';
+import { LoginResponseDto } from '../../models/interfaces/auth-api.model';
 
 const TOKEN_KEY = 'ticketshex_token';
 const TOKEN_EXPIRATION_KEY = 'ticketshex_token_expiration';
@@ -77,7 +63,7 @@ export class AuthService {
         nombreUsuario: user.nombreUsuario,
         nombres: user.nombres,
         apellidos: user.apellidos || null,
-        idArea: null as BackendArea | null,
+        idArea: null,
         contrasena: user.password,
       })
       .pipe(map((response) => response.data));
@@ -136,13 +122,15 @@ export class AuthService {
       nombres: session.usuario.nombres,
       apellidos: '',
       rol: this.mapRol(roleFromToken),
+      idArea: null,
       activo: true,
       password: '',
+      debeCambiarContrasena: session.usuario.debeCambiarContrasena ?? false,
       avatarUrl: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png',
     };
   }
 
-  private mapRol(rol: BackendRol | JwtRoleClaim | string): Roles {
+  private mapRol(rol: string): Roles {
     const normalized = (rol ?? '').toString().trim().toLowerCase();
     const roles: Record<string, Roles> = {
       Desarrollador: Roles.Desarrollador,

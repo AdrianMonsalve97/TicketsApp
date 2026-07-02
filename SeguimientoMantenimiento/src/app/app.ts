@@ -16,13 +16,16 @@ export class App {
   protected readonly title = signal('SeguimientoMantenimiento');
   protected navState = inject(NavigationStateService);
   private router = inject(Router);
-  esRutaLogin = signal<boolean>(false);
+  esRutaLogin = signal<boolean>(this.esLogin(this.router.url));
 
   constructor() {
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)).subscribe(event => {
-       this.esRutaLogin.set(event.urlAfterRedirects.includes('/login') || event.urlAfterRedirects === '/');
+    this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe((event) => {
+      this.esRutaLogin.set(this.esLogin(event.urlAfterRedirects));
     });
 
+  }
+
+  private esLogin(url: string): boolean {
+    return url.includes('/login') || url === '/' || url === '';
   }
 }

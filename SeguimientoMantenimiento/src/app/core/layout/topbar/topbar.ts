@@ -61,7 +61,9 @@ export class Topbar {
   }
 
   ngOnInit(): void {
-    this.cargarNotificaciones();
+    if (this.authService.currentUser()) {
+      this.cargarNotificaciones();
+    }
   }
 
   logout(): void {
@@ -70,6 +72,7 @@ export class Topbar {
   }
 
   private cargarNotificaciones(): void {
+    if (!this.authService.currentUser()) return;
     const role = this.authService.currentRole();
     const request$ = role === Roles.Product_Owner ? this.ticketService.getTickets() : this.ticketService.getMyTickets();
     this.userService.getUsers().subscribe({
