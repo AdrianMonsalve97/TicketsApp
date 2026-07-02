@@ -107,7 +107,11 @@ export class AuthService {
     if (!token || !expiration || !rawUser || new Date(expiration) <= new Date()) {
       return null;
     }
-    return JSON.parse(rawUser) as User;
+    const stored = JSON.parse(rawUser) as User;
+    return {
+      ...stored,
+      avatarUrl: '',
+    };
   }
 
   private getTokenWithoutExpirationCheck(): string | null {
@@ -116,7 +120,7 @@ export class AuthService {
 
   private mapAuthenticatedUser(session: LoginResponseDto): User {
     const roleFromToken = this.extractRoleFromToken(session.token) ?? session.usuario.rol;
-    return {
+      return {
       idUsuario: String(session.usuario.idUsuario),
       nombreUsuario: session.usuario.nombreUsuario,
       nombres: session.usuario.nombres,
@@ -126,7 +130,7 @@ export class AuthService {
       activo: true,
       password: '',
       debeCambiarContrasena: session.usuario.debeCambiarContrasena ?? false,
-      avatarUrl: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png',
+      avatarUrl: '',
     };
   }
 

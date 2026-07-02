@@ -38,10 +38,19 @@ export class Topbar {
   isDarkMode: boolean = true;
   public notificaciones = signal<NotificationItem[]>([]);
   public cantidadNotificaciones = computed(() => this.notificaciones().length);
+  public currentUser = computed(() => this.authService.currentUser());
 
   get selectedRole(): Roles {
     return this.authService.currentRole();
   }
+
+  public avatarUrl = computed(() => this.authService.currentUser()?.avatarUrl || '');
+  public avatarFallback = computed(() =>
+    (this.authService.currentUser()?.nombres || this.authService.currentUser()?.nombreUsuario || 'U')
+      .trim()
+      .slice(0, 2)
+      .toUpperCase()
+  );
 
   onRoleChange(newRole: Roles) {
     this.authService.changeRole(newRole);

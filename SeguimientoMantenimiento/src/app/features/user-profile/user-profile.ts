@@ -30,7 +30,7 @@ export class UserProfile implements OnInit {
         apellidos: 'Elsner',
         rol: this.authService.getCurrentRole(),
         idArea: null,
-        avatarUrl: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png',
+        avatarUrl: '',
         password: '123456',
         activo: true
       };

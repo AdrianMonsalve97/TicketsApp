@@ -21,8 +21,12 @@
       </button>
 
       <div class="cursor-pointer flex items-center transition-transform active:scale-95" (click)="alternarPopover($event)">
-        <p-overlaybadge [value]="cantidadNotificaciones()" styleClass="sin-borde" class="mt-2">
-          <p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" size="large" shape="circle" class="top-2 border border-white/10" />
+        <p-overlaybadge [value]="cantidadNotificaciones()" styleClass="sin-borde" class="mt-1">
+          @if (avatarUrl()) {
+            <p-avatar [image]="avatarUrl()" shape="circle" class="w-10 h-10 text-xs border border-white/10 overflow-hidden" />
+          } @else {
+            <p-avatar [label]="avatarFallback()" shape="circle" class="w-10 h-10 text-[11px] border border-white/10 overflow-hidden bg-blue-500/20 text-blue-200 font-bold" />
+          }
         </p-overlaybadge>
       </div>
 
