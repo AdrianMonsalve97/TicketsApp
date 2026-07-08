@@ -15,6 +15,7 @@ export interface Ticket {
   desarrolladorAsignadoNombre?: string;
   qaAsignadoId?: string;
   ltAsignadoId?: string;
+  ltAsignadoNombre?: string;
   historiaUsuario?: string;
 
   fechaAsignacion: Date;
@@ -24,6 +25,8 @@ export interface Ticket {
   carpetaMedios?: string;
   causaRaiz?: string;
   solucionPropuesta?: string;
+  activo?: boolean;
+  fechaEliminacion?: Date | null;
 
   repositoriosAfectados: Repository[];
   historial: TicketHistory[];

@@ -16,20 +16,20 @@
 
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 relative z-10">
       <div class="crypto-glass-card p-4 rounded-xl border border-white/5 flex flex-col">
-        <span class="text-[9px] font-mono text-slate-400 uppercase tracking-widest">Total Personal</span>
-        <span class="text-xl font-bold text-white font-mono mt-1">{{ kpis().total }} <span class="text-xs text-slate-500">users</span></span>
+        <span class="text-[9px] font-mono text-slate-400 uppercase tracking-widest">Total personal</span>
+        <span class="text-xl font-bold text-white font-mono mt-1">{{ kpis().total }} <span class="text-xs text-slate-500">usuarios</span></span>
       </div>
       <div class="crypto-glass-card p-4 rounded-xl border border-white/5 flex flex-col">
-        <span class="text-[9px] font-mono text-emerald-400 uppercase tracking-widest">Sistemas Activos</span>
-        <span class="text-xl font-bold text-emerald-400 font-mono mt-1">{{ kpis().activos }} <span class="text-xs text-emerald-600">online</span></span>
+        <span class="text-[9px] font-mono text-emerald-400 uppercase tracking-widest">Usuarios activos</span>
+        <span class="text-xl font-bold text-emerald-400 font-mono mt-1">{{ kpis().activos }}</span>
       </div>
       <div class="crypto-glass-card p-4 rounded-xl border border-white/5 flex flex-col">
-        <span class="text-[9px] font-mono text-rose-400 uppercase tracking-widest">Inactivos / Bajas</span>
-        <span class="text-xl font-bold text-rose-400 font-mono mt-1">{{ kpis().inactivos }} <span class="text-xs text-rose-600">offline</span></span>
+        <span class="text-[9px] font-mono text-rose-400 uppercase tracking-widest">Inactivos</span>
+        <span class="text-xl font-bold text-rose-400 font-mono mt-1">{{ kpis().inactivos }}</span>
       </div>
       <div class="crypto-glass-card p-4 rounded-xl border border-white/5 flex flex-col justify-between">
-        <span class="text-[9px] font-mono text-blue-400 uppercase tracking-widest">Mapeo por Rol</span>
-        <span class="text-[9px] font-mono text-slate-400 mt-1">DEV: {{ kpis().dev }} | QA: {{ kpis().qa }} | LT: {{ kpis().lt }} | PO: {{ kpis().po }}</span>
+        <span class="text-[9px] font-mono text-blue-400 uppercase tracking-widest">Mapeo por rol</span>
+        <span class="text-[9px] font-mono text-slate-400 mt-1">DEV: {{ kpis().dev }} | QA: {{ kpis().qa }} | LT: {{ kpis().lt }} | Planner: {{ kpis().po }}</span>
       </div>
     </div>
 
@@ -44,25 +44,25 @@
       </app-data-table>
     } @else {
       <div class="crypto-glass-card p-6 rounded-2xl border border-white/5 text-center max-w-xl mx-auto relative z-10 my-8">
-        <i class="pi pi-lock text-amber-500 text-xl animate-pulse"></i>
-        <h4 class="text-sm font-bold text-white uppercase font-mono mt-2">CONTROL PERFIL INDIVIDUAL</h4>
-        <p class="text-xs text-slate-400 font-sans mt-1">No posees permisos de administración global. Tu consola de auto-actualización exclusiva de cuenta ha sido ejecutada.</p>
+        <i class="pi pi-lock text-amber-500 text-xl"></i>
+        <h4 class="text-sm font-bold text-white uppercase font-mono mt-2">Acceso restringido</h4>
+        <p class="text-xs text-slate-400 font-sans mt-1">Solo el Planner puede administrar usuarios.</p>
       </div>
     }
 
   </div>
 
-  <app-modal [visible]="modalAbierto" (close)="modalAbierto = false" [title]="modoEdicion ? 'Actualizar Parámetros de Perfil' : 'Alta de Nuevo Ingeniero'" [size]="'md'">
+  <app-modal [visible]="modalAbierto" (close)="modalAbierto = false" [title]="modoEdicion ? 'Actualizar usuario' : 'Crear usuario'" [size]="'md'">
     @if (modalAbierto) {
       <div class="p-5 flex flex-col gap-4 text-xs font-mono text-slate-300">
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="flex flex-col gap-1.5">
-            <label class="text-slate-500 font-bold uppercase text-[9px]">ID Usuario:</label>
+            <label class="text-slate-500 font-bold uppercase text-[9px]">ID usuario:</label>
             <input type="text" inputmode="numeric" [(ngModel)]="usuarioSeleccionado.idUsuario" placeholder="Ej: 6373" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none" />
           </div>
           <div class="flex flex-col gap-1.5">
-            <label class="text-slate-500 font-bold uppercase text-[9px]">Nombre de Usuario:</label>
+            <label class="text-slate-500 font-bold uppercase text-[9px]">Nombre de usuario:</label>
             <input type="text" [(ngModel)]="usuarioSeleccionado.nombreUsuario" [disabled]="modoEdicion && usuarioLogueadoRol() !== RolesEnum.Product_Owner" placeholder="Ej: hamilton.dev" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none disabled:opacity-50" />
           </div>
         </div>
@@ -80,16 +80,10 @@
         </div>
 
         @if (!modoEdicion) {
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 gap-4">
             <div class="flex flex-col gap-1.5">
-              <label class="text-slate-500 font-bold uppercase text-[9px]">Contraseña Inicial:</label>
+              <label class="text-slate-500 font-bold uppercase text-[9px]">Contraseña inicial:</label>
               <input type="password" [(ngModel)]="usuarioSeleccionado.password" placeholder="Contraseña temporal" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none" />
-            </div>
-            <div class="flex items-end gap-2">
-              <label class="flex items-center gap-2 cursor-pointer text-slate-300 text-xs">
-                <input type="checkbox" [(ngModel)]="usuarioSeleccionado.debeCambiarContrasena" class="rounded border-white/10 bg-[#0d0d12] text-blue-500 focus:ring-0" />
-                <span>Exigir cambio en primer ingreso</span>
-              </label>
             </div>
           </div>
         }
@@ -107,9 +101,9 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white/[0.01] border border-white/5 p-3 rounded-xl">
           <div class="flex flex-col gap-1.5">
-            <label class="text-slate-500 font-bold uppercase text-[9px]">Rol en Célula Operativa:</label>
+            <label class="text-slate-500 font-bold uppercase text-[9px]">Rol:</label>
             <select [(ngModel)]="usuarioSeleccionado.rol" [disabled]="usuarioLogueadoRol() !== RolesEnum.Product_Owner" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2 text-slate-200 focus:outline-none disabled:opacity-50 cursor-pointer uppercase font-mono">
-              <option [value]="RolesEnum.Product_Owner">Product Owner</option>
+              <option [value]="RolesEnum.Product_Owner">Planner</option>
               <option [value]="RolesEnum.Lider_Tecnico">Líder Técnico</option>
               <option [value]="RolesEnum.Desarrollador">Desarrollador</option>
               <option [value]="RolesEnum.Qa">QA</option>
@@ -117,28 +111,28 @@
           </div>
 
           <div class="flex flex-col gap-1.5 justify-center pl-2">
-            <label class="text-slate-500 font-bold uppercase text-[9px] mb-1">Estado de Cuenta:</label>
+            <label class="text-slate-500 font-bold uppercase text-[9px] mb-1">Estado de cuenta:</label>
             <label class="flex items-center gap-2 cursor-pointer text-slate-300">
               <input type="checkbox" [(ngModel)]="usuarioSeleccionado.activo" [disabled]="usuarioLogueadoRol() !== RolesEnum.Product_Owner" class="rounded border-white/10 bg-[#0d0d12] text-blue-500 focus:ring-0 disabled:opacity-50" />
-              <span>Usuario Vigente</span>
+              <span>Usuario activo</span>
             </label>
           </div>
         </div>
 
         <div class="flex justify-end gap-3 mt-4 pt-3 border-t border-white/5">
           <button (click)="modalAbierto = false" class="px-4 py-2 font-bold font-mono text-slate-500 hover:text-slate-300 transition-colors cursor-pointer">CANCELAR</button>
-          <button (click)="guardarUsuario()" class="px-4 py-2 font-bold font-mono bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl shadow-lg transition-all cursor-pointer">CONFIRMAR CAMBIOS</button>
+          <button (click)="guardarUsuario()" class="px-4 py-2 font-bold font-mono bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl shadow-lg transition-all cursor-pointer">GUARDAR</button>
         </div>
 
       </div>
     }
   </app-modal>
 
-  <app-modal [visible]="modalCredencialesAbierto" (close)="cerrarModalCredenciales()" title="Credenciales de Acceso" [size]="'sm'">
+  <app-modal [visible]="modalCredencialesAbierto" (close)="cerrarModalCredenciales()" title="Credenciales de acceso" [size]="'sm'">
     @if (credencialesCreacion) {
       <div class="p-5 flex flex-col gap-4 text-xs font-mono text-slate-300">
         <p class="text-slate-400 text-[10px] leading-5">
-          Comparte estas credenciales con el usuario. La contraseña mostrada aquí es temporal y luego podrá venir directamente del servicio.
+          Comparte estas credenciales con el usuario. Más adelante la contraseña podrá venir directamente del servicio.
         </p>
 
         <div class="grid grid-cols-1 gap-3">
@@ -153,7 +147,7 @@
           </div>
 
           <div class="flex flex-col gap-1.5">
-            <label class="text-slate-500 font-bold uppercase text-[9px]">Contraseña Temporal:</label>
+            <label class="text-slate-500 font-bold uppercase text-[9px]">Contraseña temporal:</label>
             <div class="flex items-center gap-2">
               <input type="text" readonly [value]="credencialesCreacion.contrasena" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none" />
               <button type="button" (click)="copiarTexto(credencialesCreacion.contrasena)" class="px-3 py-2 rounded-xl border border-white/10 text-slate-200 hover:bg-white/5 transition-colors cursor-pointer">

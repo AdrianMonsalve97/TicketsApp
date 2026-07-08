@@ -54,6 +54,6 @@ export class DataTableComponent {
   }
 
   public trackRow(index: number, row: any): string | number {
-    return row?.idTicket ?? row?.idUsuario ?? row?.id ?? index;
+    return row?.idTicket || row?.idUsuario || row?.id || index;
   }
 }

@@ -9,6 +9,10 @@ export interface User {
   idArea: number | null;
   avatarUrl?: string;
   activo: boolean;
+  bloqueado?: boolean;
+  intentosFallidos?: number;
+  fechaBloqueo?: Date | null;
+  contrasenaExpiraEn?: Date | null;
   password: string;
   debeCambiarContrasena?: boolean;
 }

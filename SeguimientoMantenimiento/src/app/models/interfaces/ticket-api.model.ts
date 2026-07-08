@@ -18,7 +18,7 @@ export type BackendTicketEstado =
   | 'Rollback';
 
 export interface TicketHistoryDto {
-  estadoOrigen: BackendTicketEstado;
+  estadoOrigen: BackendTicketEstado | 0 | null;
   estadoDestino: BackendTicketEstado;
   idUsuarioAccion?: number | null;
   comentario?: string | null;
@@ -37,6 +37,8 @@ export interface TicketDto {
   solucionPropuesta?: string | null;
   fechaCreacion: string;
   fechaUltimaActualizacion?: string | null;
+  activo: boolean;
+  fechaEliminacion?: string | null;
   comentarios: TicketHistoryDto[];
 }
 
@@ -69,6 +71,7 @@ export function ticketStatusToBackend(status: TicketStatus): BackendTicketEstado
     [TicketStatus.APROBADO_PARA_QA]: 'AprobadoApitesting',
     [TicketStatus.DESPLIEGUE_A_QA]: 'DespligueQA',
     [TicketStatus.EN_REVISION_QA]: 'EnRevisionQA',
+    [TicketStatus.APROBADO_QA]: 'AprobadoQA',
     [TicketStatus.PENDIENTE_CERTIFICACION]: 'PendienteCertificacion',
     [TicketStatus.CERTIFICADO]: 'Certificado',
     [TicketStatus.DESPLIEGUE_A_PRODUCCION]: 'DespliegueProduccion',
@@ -77,4 +80,25 @@ export function ticketStatusToBackend(status: TicketStatus): BackendTicketEstado
     [TicketStatus.ROLLBACK]: 'Rollback',
   };
   return statuses[status] ?? 'EnAnalisis';
+}
+
+export function ticketStatusFromBackend(status: BackendTicketEstado | 0 | null | undefined): TicketStatus {
+  const statuses: Record<BackendTicketEstado, TicketStatus> = {
+    EnAnalisis: TicketStatus.EN_ANALISIS,
+    EnProceso: TicketStatus.EN_PROCESO,
+    Bloqueado: TicketStatus.BLOQUEO,
+    Entregado: TicketStatus.ENTREGADO_A_LT,
+    DespliegueApitesting: TicketStatus.DESPLIEGUE_A_DESARROLLO,
+    EnRevisionApitesting: TicketStatus.EN_REVISION_DESARROLLO,
+    AprobadoApitesting: TicketStatus.APROBADO_PARA_QA,
+    DespligueQA: TicketStatus.DESPLIEGUE_A_QA,
+    EnRevisionQA: TicketStatus.EN_REVISION_QA,
+    AprobadoQA: TicketStatus.APROBADO_QA,
+    PendienteCertificacion: TicketStatus.PENDIENTE_CERTIFICACION,
+    Certificado: TicketStatus.CERTIFICADO,
+    DespliegueProduccion: TicketStatus.DESPLIEGUE_A_PRODUCCION,
+    BUG: TicketStatus.DEVUELTO,
+    Rollback: TicketStatus.ROLLBACK,
+  };
+  return status ? statuses[status as BackendTicketEstado] ?? TicketStatus.EN_ANALISIS : TicketStatus.EN_ANALISIS;
 }

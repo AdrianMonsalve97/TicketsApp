@@ -6,12 +6,16 @@ import { AuthService } from '../../services/auth.service';
 import { TicketService } from '../../services/ticket.service';
 import { UserService } from '../../services/user.service';
 import { Ticket } from '../../../models/interfaces/ticket.model';
+import { User } from '../../../models/interfaces/user.model';
 import { Roles } from '../../../models/enums/roles';
 import { AvatarModule } from 'primeng/avatar';
 import { OverlayBadge } from 'primeng/overlaybadge';
 import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
 import { PopoverModule, Popover } from 'primeng/popover';
+import { of } from 'rxjs';
+import { TicketStatus } from '../../../models/enums/ticket-status';
+import { canViewAllTickets } from '../../../models/utils/role.utils';
 
 
 
@@ -81,10 +85,15 @@ export class Topbar {
   }
 
   private cargarNotificaciones(): void {
-    if (!this.authService.currentUser()) return;
+    const currentUser = this.authService.currentUser();
+    if (!currentUser) return;
     const role = this.authService.currentRole();
-    const request$ = role === Roles.Product_Owner ? this.ticketService.getTickets() : this.ticketService.getMyTickets();
-    this.userService.getUsers().subscribe({
+    const request$ = canViewAllTickets(role)
+      ? this.ticketService.getTickets()
+      : this.ticketService.getMyTickets();
+    const users$ = canViewAllTickets(role) ? this.userService.getUsers() : of([currentUser]);
+
+    users$.subscribe({
       next: (users) => {
         const usuariosPorId = new Map(users.map((user) => [Number(user.idUsuario), user]));
         request$.subscribe({
@@ -96,8 +105,183 @@ export class Topbar {
     });
   }
 
-  private buildNotificaciones(tickets: Ticket[], usuariosPorId: Map<number, any>): NotificationItem[] {
-    const recientes = [...tickets]
+  private buildNotificaciones(tickets: Ticket[], usuariosPorId: Map<number, User>): NotificationItem[] {
+    const currentUser = this.authService.currentUser();
+    if (!currentUser) return [];
+
+    const role = this.authService.currentRole();
+    const notificaciones = [
+      ...this.buildAlertasSinHu(tickets, usuariosPorId, role),
+      ...this.buildNotificacionesPorRol(tickets, usuariosPorId, currentUser, role),
+      ...this.buildRecientes(tickets, usuariosPorId, role),
+    ];
+
+    return this.takeUniqueNotifications(notificaciones, 5);
+  }
+
+  private buildAlertasSinHu(
+    tickets: Ticket[],
+    usuariosPorId: Map<number, User>,
+    role: Roles,
+  ): NotificationItem[] {
+    return tickets
+      .filter((ticket) => this.esUrgenteSinHu(ticket))
+      .sort((a, b) => this.fechaReferencia(b).getTime() - this.fechaReferencia(a).getTime())
+      .slice(0, role === Roles.Product_Owner ? 3 : 1)
+      .map((ticket) => ({
+        id: `hu-${ticket.idTicket}`,
+        title: role === Roles.Product_Owner ? 'Urgente sin HU' : 'Tu ticket requiere HU',
+        detail: `${ticket.codigoCaso} - ${ticket.titulo}`,
+        meta: this.obtenerMetaAsignacion(ticket, usuariosPorId),
+        time: this.formatRelativeDate(ticket.fechaCreacion),
+        tone: 'warning' as const,
+      }));
+  }
+
+  private buildNotificacionesPorRol(
+    tickets: Ticket[],
+    usuariosPorId: Map<number, User>,
+    currentUser: User,
+    role: Roles,
+  ): NotificationItem[] {
+    if (role === Roles.Product_Owner) {
+      return this.buildNotificacionesPlanner(tickets, usuariosPorId);
+    }
+
+    if (role === Roles.Lider_Tecnico) {
+      return this.buildNotificacionesLiderTecnico(tickets, usuariosPorId);
+    }
+
+    if (role === Roles.Qa) {
+      return this.buildNotificacionesQa(tickets, usuariosPorId);
+    }
+
+    return this.buildNotificacionesDesarrollador(tickets, usuariosPorId, currentUser);
+  }
+
+  private buildNotificacionesPlanner(
+    tickets: Ticket[],
+    usuariosPorId: Map<number, User>,
+  ): NotificationItem[] {
+    const bloqueados = tickets
+      .filter((ticket) => [TicketStatus.BLOQUEO, TicketStatus.ROLLBACK].includes(ticket.estadoActual))
+      .slice(0, 2)
+      .map((ticket) => ({
+        id: `planner-bloqueo-${ticket.idTicket}`,
+        title: 'Bloqueo en el flujo',
+        detail: `${ticket.codigoCaso} - ${ticket.titulo}`,
+        meta: this.obtenerMetaAsignacion(ticket, usuariosPorId),
+        time: this.formatRelativeDate(ticket.fechaUltimaActualizacion ?? ticket.fechaCreacion),
+        tone: 'warning' as const,
+      }));
+
+    const pendientesCertificacion = tickets
+      .filter((ticket) => ticket.estadoActual === TicketStatus.PENDIENTE_CERTIFICACION)
+      .slice(0, 2)
+      .map((ticket) => ({
+        id: `planner-certificacion-${ticket.idTicket}`,
+        title: 'Pendiente de certificación',
+        detail: `${ticket.codigoCaso} - ${ticket.titulo}`,
+        meta: this.obtenerMetaAsignacion(ticket, usuariosPorId),
+        time: this.formatRelativeDate(ticket.fechaUltimaActualizacion ?? ticket.fechaCreacion),
+        tone: 'info' as const,
+      }));
+
+    return [...bloqueados, ...pendientesCertificacion];
+  }
+
+  private buildNotificacionesLiderTecnico(
+    tickets: Ticket[],
+    usuariosPorId: Map<number, User>,
+  ): NotificationItem[] {
+    return tickets
+      .filter((ticket) =>
+        [
+          TicketStatus.ENTREGADO_A_LT,
+          TicketStatus.APROBADO_PARA_QA,
+          TicketStatus.APROBADO_QA,
+          TicketStatus.BLOQUEO,
+          TicketStatus.ROLLBACK,
+        ].includes(ticket.estadoActual),
+      )
+      .slice(0, 3)
+      .map((ticket) => ({
+        id: `lt-${ticket.estadoActual}-${ticket.idTicket}`,
+        title: this.obtenerTituloLt(ticket.estadoActual),
+        detail: `${ticket.codigoCaso} - ${ticket.titulo}`,
+        meta: this.obtenerMetaAsignacion(ticket, usuariosPorId),
+        time: this.formatRelativeDate(ticket.fechaUltimaActualizacion ?? ticket.fechaCreacion),
+        tone: [TicketStatus.BLOQUEO, TicketStatus.ROLLBACK].includes(ticket.estadoActual)
+          ? 'warning' as const
+          : 'info' as const,
+      }));
+  }
+
+  private buildNotificacionesQa(
+    tickets: Ticket[],
+    usuariosPorId: Map<number, User>,
+  ): NotificationItem[] {
+    return tickets
+      .filter((ticket) =>
+        [
+          TicketStatus.DESPLIEGUE_A_DESARROLLO,
+          TicketStatus.EN_REVISION_DESARROLLO,
+          TicketStatus.DESPLIEGUE_A_QA,
+          TicketStatus.EN_REVISION_QA,
+          TicketStatus.BLOQUEO,
+          TicketStatus.DEVUELTO,
+        ].includes(ticket.estadoActual),
+      )
+      .slice(0, 3)
+      .map((ticket) => ({
+        id: `qa-${ticket.estadoActual}-${ticket.idTicket}`,
+        title: this.obtenerTituloQa(ticket.estadoActual),
+        detail: `${ticket.codigoCaso} - ${ticket.titulo}`,
+        meta: this.obtenerMetaAsignacion(ticket, usuariosPorId),
+        time: this.formatRelativeDate(ticket.fechaUltimaActualizacion ?? ticket.fechaCreacion),
+        tone: [TicketStatus.BLOQUEO, TicketStatus.DEVUELTO].includes(ticket.estadoActual)
+          ? 'warning' as const
+          : 'info' as const,
+      }));
+  }
+
+  private buildNotificacionesDesarrollador(
+    tickets: Ticket[],
+    usuariosPorId: Map<number, User>,
+    currentUser: User,
+  ): NotificationItem[] {
+    const currentUserId = Number(currentUser.idUsuario);
+    return tickets
+      .filter((ticket) => Number(ticket.idUsuarioAsignado) === currentUserId)
+      .filter((ticket) =>
+        [
+          TicketStatus.EN_ANALISIS,
+          TicketStatus.EN_PROCESO,
+          TicketStatus.BLOQUEO,
+          TicketStatus.DEVUELTO,
+          TicketStatus.ROLLBACK,
+        ].includes(ticket.estadoActual) ||
+        this.tieneDiagnosticoPendiente(ticket),
+      )
+      .slice(0, 3)
+      .map((ticket) => ({
+        id: `dev-${ticket.estadoActual}-${ticket.idTicket}`,
+        title: this.obtenerTituloDesarrollador(ticket),
+        detail: `${ticket.codigoCaso} - ${ticket.titulo}`,
+        meta: this.obtenerMetaAsignacion(ticket, usuariosPorId),
+        time: this.formatRelativeDate(ticket.fechaUltimaActualizacion ?? ticket.fechaCreacion),
+        tone: [TicketStatus.BLOQUEO, TicketStatus.DEVUELTO, TicketStatus.ROLLBACK].includes(ticket.estadoActual)
+          ? 'warning' as const
+          : 'info' as const,
+      }));
+  }
+
+  private buildRecientes(
+    tickets: Ticket[],
+    usuariosPorId: Map<number, User>,
+    role: Roles,
+  ): NotificationItem[] {
+    return [...tickets]
       .filter((ticket) => !!ticket.fechaUltimaActualizacion || !!ticket.fechaCreacion)
       .sort((a, b) => {
         const aDate = a.fechaUltimaActualizacion ?? a.fechaCreacion ?? new Date(0);
@@ -108,30 +292,83 @@ export class Topbar {
       .map((ticket) => {
         const usuario = usuariosPorId.get(ticket.idUsuarioAsignado);
         return {
-          title: ticket.causaRaiz?.trim() ? 'Ticket actualizado' : 'Ticket reciente',
+          id: `reciente-${ticket.idTicket}`,
+          title: role === Roles.Product_Owner ? 'Movimiento reciente' : 'Actividad en tu ticket',
           detail: `${ticket.codigoCaso} - ${ticket.titulo}`,
-          meta: usuario ? `${usuario.nombres} ${usuario.apellidos}`.trim() : 'Sin asignar',
+          meta: usuario ? `${usuario.nombres} ${usuario.apellidos}`.trim() : 'Asignado a ti',
           time: this.formatRelativeDate(ticket.fechaUltimaActualizacion ?? ticket.fechaCreacion),
           tone: 'info' as const,
         };
       });
+  }
 
-    const urgentesSinHU = tickets
-      .filter((ticket) => !ticket.historiaUsuario || ticket.historiaUsuario.trim() === '')
-      .filter((ticket) =>
-        [ 'EN ANALISIS', 'EN PROCESO', 'BLOQUEO', 'EN REVISION DESARROLLO', 'APROBADO PARA QA', 'DESPLIEGUE A QA', 'EN REVISION QA', 'PENDIENTE CERTIFICACION' ]
-          .includes(ticket.estadoActual),
-      )
-      .slice(0, 2)
-      .map((ticket) => ({
-        title: 'Urgente sin HU',
-        detail: `${ticket.codigoCaso} - ${ticket.titulo}`,
-        meta: 'Requiere historia de usuario',
-        time: this.formatRelativeDate(ticket.fechaCreacion),
-        tone: 'warning' as const,
-      }));
+  private esUrgenteSinHu(ticket: Ticket): boolean {
+    return (
+      (!ticket.historiaUsuario || ticket.historiaUsuario.trim() === '') &&
+      [
+        TicketStatus.EN_ANALISIS,
+        TicketStatus.EN_PROCESO,
+        TicketStatus.BLOQUEO,
+        TicketStatus.EN_REVISION_DESARROLLO,
+        TicketStatus.APROBADO_PARA_QA,
+        TicketStatus.DESPLIEGUE_A_QA,
+        TicketStatus.EN_REVISION_QA,
+        TicketStatus.APROBADO_QA,
+        TicketStatus.PENDIENTE_CERTIFICACION,
+      ].includes(ticket.estadoActual)
+    );
+  }
 
-    return [...urgentesSinHU, ...recientes].slice(0, 5);
+  private tieneDiagnosticoPendiente(ticket: Ticket): boolean {
+    return (
+      [TicketStatus.EN_PROCESO, TicketStatus.ENTREGADO_A_LT].includes(ticket.estadoActual) &&
+      (!ticket.causaRaiz?.trim() || !ticket.solucionPropuesta?.trim())
+    );
+  }
+
+  private obtenerTituloDesarrollador(ticket: Ticket): string {
+    if (ticket.estadoActual === TicketStatus.BLOQUEO) return 'Tienes un bloqueo activo';
+    if ([TicketStatus.DEVUELTO, TicketStatus.ROLLBACK].includes(ticket.estadoActual)) return 'Requiere corrección';
+    if (this.tieneDiagnosticoPendiente(ticket)) return 'Diagnóstico pendiente';
+    if (ticket.estadoActual === TicketStatus.EN_ANALISIS) return 'Listo para iniciar análisis';
+    return 'Ticket asignado';
+  }
+
+  private obtenerTituloQa(estado: TicketStatus): string {
+    if (estado === TicketStatus.DESPLIEGUE_A_DESARROLLO) return 'Disponible para revisión API Testing';
+    if (estado === TicketStatus.EN_REVISION_DESARROLLO) return 'Revisión en curso';
+    if (estado === TicketStatus.DESPLIEGUE_A_QA) return 'Disponible para revisión QA';
+    if (estado === TicketStatus.EN_REVISION_QA) return 'Validación QA pendiente';
+    if (estado === TicketStatus.DEVUELTO) return 'Caso devuelto a desarrollo';
+    return 'Impedimento en revisión';
+  }
+
+  private obtenerTituloLt(estado: TicketStatus): string {
+    if (estado === TicketStatus.ENTREGADO_A_LT) return 'Listo para despliegue API Testing';
+    if (estado === TicketStatus.APROBADO_PARA_QA) return 'Listo para despliegue QA';
+    if (estado === TicketStatus.APROBADO_QA) return 'Listo para producción';
+    if (estado === TicketStatus.ROLLBACK) return 'Rollback requiere seguimiento';
+    return 'Bloqueo requiere gestión';
+  }
+
+  private obtenerMetaAsignacion(ticket: Ticket, usuariosPorId: Map<number, User>): string {
+    const usuario = usuariosPorId.get(Number(ticket.idUsuarioAsignado));
+    if (!usuario) return 'Asignado a ti';
+    return `${usuario.nombres} ${usuario.apellidos}`.trim() || usuario.nombreUsuario;
+  }
+
+  private fechaReferencia(ticket: Ticket): Date {
+    return ticket.fechaUltimaActualizacion ?? ticket.fechaCreacion ?? ticket.fechaAsignacion ?? new Date(0);
+  }
+
+  private takeUniqueNotifications(notificaciones: NotificationItem[], limit: number): NotificationItem[] {
+    const unique = new Map<string, NotificationItem>();
+    for (const notification of notificaciones) {
+      if (!unique.has(notification.id)) {
+        unique.set(notification.id, notification);
+      }
+    }
+    return [...unique.values()].slice(0, limit);
   }
 
   private formatRelativeDate(date?: Date): string {
@@ -147,6 +384,7 @@ export class Topbar {
 }
 
 interface NotificationItem {
+  id: string;
   title: string;
   detail: string;
   meta: string;

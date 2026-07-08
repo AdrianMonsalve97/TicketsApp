@@ -1,18 +1,19 @@
 import {
+  AfterViewInit,
   Component,
   OnInit,
   TemplateRef,
-  AfterViewInit,
   inject,
   input,
   output,
   viewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DynamicStepperComponent, StepItemConfig } from '../../shared/organisms/stepper/stepper';
 import { CrearTicketRequestBody } from '../../models/interfaces/ticket-api.model';
 import { User } from '../../models/interfaces/user.model';
+import { Roles } from '../../models/enums/roles';
 
 @Component({
   selector: 'app-formulario-ticket-stepper',
@@ -22,21 +23,21 @@ import { User } from '../../models/interfaces/user.model';
 export class FormularioTicketStepperComponent implements OnInit, AfterViewInit {
   private fb = inject(FormBuilder);
 
-  pasoDefinicion = viewChild.required<TemplateRef<any>>('pasoDefinicion');
-  pasoAsignacion = viewChild.required<TemplateRef<any>>('pasoAsignacion');
+  pasoDefinicion = viewChild.required<TemplateRef<unknown>>('pasoDefinicion');
+  pasoAsignacion = viewChild.required<TemplateRef<unknown>>('pasoAsignacion');
 
   onFormComplete = output<CrearTicketRequestBody>();
   usuariosAsignables = input<User[]>([]);
   rolActual = input<'PMO_LT' | 'DEV' | 'QA'>('DEV');
+  puedeAsignarUsuarios = input(false);
   usuarioActualId = input<string>('');
   usuarioActualNombre = input<string>('Usuario');
 
   public formPasoUno!: FormGroup;
   public formPasoDos!: FormGroup;
-
   public configuracionPasos: StepItemConfig[] = [];
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.formPasoUno = this.fb.group({
       titulo: ['', [Validators.required, Validators.minLength(5)]],
       descripcion: ['', [Validators.required, Validators.minLength(10)]],
@@ -45,11 +46,11 @@ export class FormularioTicketStepperComponent implements OnInit, AfterViewInit {
     this.formPasoDos = this.fb.group({
       codigoCaso: ['', [Validators.required, Validators.minLength(5)]],
       origenTicket: [1, Validators.required],
-      idUsuarioAsignado: [this.usuarioActualId(), [Validators.required, Validators.min(1)]],
+      idUsuarioAsignado: [Number(this.usuarioActualId()), [Validators.required, Validators.min(1)]],
     });
   }
 
-  ngAfterViewInit() {
+  ngAfterViewInit(): void {
     setTimeout(() => {
       this.configuracionPasos = [
         {
@@ -71,37 +72,34 @@ export class FormularioTicketStepperComponent implements OnInit, AfterViewInit {
     });
   }
 
-  private actualizarEstatusPasos() {
-    if (this.configuracionPasos.length === 2) {
-      this.configuracionPasos[0].isValid = this.formPasoUno.valid;
-      this.configuracionPasos[1].isValid = this.formPasoDos.valid;
-    }
-  }
+  completarRegistro(): void {
+    const idUsuarioAsignado = this.puedeAsignarUsuarios()
+      ? Number(this.formPasoDos.value.idUsuarioAsignado)
+      : Number(this.usuarioActualId());
 
-  completarRegistro() {
     this.onFormComplete.emit({
       codigoCaso: this.formPasoDos.value.codigoCaso,
       origenTicket: Number(this.formPasoDos.value.origenTicket) as 1 | 2,
       titulo: this.formPasoUno.value.titulo,
       descripcion: this.formPasoUno.value.descripcion,
-      idUsuarioAsignado: Number(this.formPasoDos.value.idUsuarioAsignado),
+      idUsuarioAsignado,
     });
   }
 
-  public trackUser(_: number, user: User): string {
-    return user.idUsuario;
+  public trackUser(index: number, user: User): string {
+    return user.idUsuario || `usuario-${index}`;
   }
 
   public usuariosFiltrados(): User[] {
-    const usuarios = this.usuariosAsignables();
-    if (this.rolActual() === 'PMO_LT') {
-      return usuarios;
+    if (this.puedeAsignarUsuarios()) {
+      return this.usuariosAsignables();
     }
 
-    const miUsuario = usuarios.find((usuario) => usuario.idUsuario === this.usuarioActualId());
-    if (miUsuario) {
-      return [miUsuario];
-    }
+    const miUsuario = this.usuariosAsignables().find(
+      (usuario) => usuario.idUsuario === this.usuarioActualId(),
+    );
+
+    if (miUsuario) return [miUsuario];
 
     return [
       {
@@ -109,12 +107,20 @@ export class FormularioTicketStepperComponent implements OnInit, AfterViewInit {
         nombreUsuario: this.usuarioActualNombre(),
         nombres: this.usuarioActualNombre(),
         apellidos: '',
-        rol: 'DESARROLLADOR' as never,
+        rol: Roles.Desarrollador,
         idArea: null,
         activo: true,
+        bloqueado: false,
         password: '',
         avatarUrl: '',
       },
     ];
+  }
+
+  private actualizarEstatusPasos(): void {
+    if (this.configuracionPasos.length === 2) {
+      this.configuracionPasos[0].isValid = this.formPasoUno.valid;
+      this.configuracionPasos[1].isValid = this.formPasoDos.valid;
+    }
   }
 }

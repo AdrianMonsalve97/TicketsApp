@@ -1,19 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
-import { Roles } from '../../models/enums/roles';
 import { User } from '../../models/interfaces/user.model';
 import { API_BASE_URL } from './api.config';
 import { ApiResponse } from '../../models/interfaces/api-response.model';
-import { BackendRol } from '../../models/interfaces/auth-api.model';
 import { UsuarioDto } from '../../models/interfaces/user-api.model';
-
-const ROL_BACKEND: Record<Roles, BackendRol> = {
-  [Roles.Desarrollador]: 'Desarrollador',
-  [Roles.Qa]: 'QA',
-  [Roles.Lider_Tecnico]: 'LiderTecnico',
-  [Roles.Product_Owner]: 'Planner',
-};
+import { backendRolToRole, roleToBackendRol } from '../../models/utils/role.utils';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -30,18 +22,18 @@ export class UserService {
   }
 
   createUser(user: User): Observable<User> {
-    const idUsuario = Number(user.idUsuario || Math.floor(1000 + Math.random() * 9000));
+    const idUsuario = Number(user.idUsuario);
     return this.http
       .post<ApiResponse<number>>(`${API_BASE_URL}/usuarios`, {
         idUsuario,
         nombreUsuario: user.nombreUsuario,
         nombres: user.nombres,
         apellidos: user.apellidos,
-        rol: this.mapRolToBackend(user.rol),
+        rol: roleToBackendRol(user.rol),
         idArea: user.idArea ?? null,
-        contrasena: user.password || '123456',
+        contrasena: user.password,
       })
-      .pipe(map(() => ({ ...user, idUsuario: String(idUsuario), password: '' })));
+      .pipe(map(() => ({ ...user, idUsuario: String(idUsuario), activo: true, bloqueado: false, password: '' })));
   }
 
   updateUser(user: User): Observable<User> {
@@ -50,7 +42,7 @@ export class UserService {
         nombreUsuario: user.nombreUsuario,
         nombres: user.nombres,
         apellidos: user.apellidos,
-        rol: this.mapRolToBackend(user.rol),
+        rol: roleToBackendRol(user.rol),
         idArea: user.idArea ?? null,
         activo: user.activo,
       })
@@ -71,25 +63,15 @@ export class UserService {
       nombreUsuario: user.nombreUsuario,
       nombres: user.nombres,
       apellidos: user.apellidos ?? '',
-      rol: this.mapRolFromBackend(user.rol),
-      activo: user.activo && !user.bloqueado,
+      rol: backendRolToRole(user.rol),
+      activo: user.activo,
+      bloqueado: user.bloqueado,
+      intentosFallidos: user.intentosFallidos ?? 0,
+      fechaBloqueo: user.fechaBloqueo ? new Date(user.fechaBloqueo) : null,
+      contrasenaExpiraEn: user.contrasenaExpiraEn ? new Date(user.contrasenaExpiraEn) : null,
       idArea: user.idArea ? Number(user.idArea) : null,
       password: '',
       avatarUrl: '',
     };
-  }
-
-  private mapRolFromBackend(rol: UsuarioDto['rol']): Roles {
-    const roles: Record<UsuarioDto['rol'], Roles> = {
-      Desarrollador: Roles.Desarrollador,
-      QA: Roles.Qa,
-      LiderTecnico: Roles.Lider_Tecnico,
-      Planner: Roles.Product_Owner,
-    };
-    return roles[rol] ?? Roles.Desarrollador;
-  }
-
-  private mapRolToBackend(rol: Roles): BackendRol {
-    return ROL_BACKEND[rol] ?? 'Desarrollador';
   }
 }

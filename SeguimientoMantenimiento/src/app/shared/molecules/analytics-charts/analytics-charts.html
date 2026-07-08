@@ -19,7 +19,7 @@
             <span class="text-[10px] text-indigo-400 font-bold uppercase tracking-wider block">Soporte & Mantenimiento (WIP)</span>
             <h2 class="text-xl font-bold text-white font-mono mt-0.5">{{ enDesarrollo }} <span class="text-xs text-slate-500 font-sans font-normal">dev</span></h2>
           </div>
-          <span class="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded border border-indigo-500/20">CORE DEV</span>
+          <span class="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded border border-indigo-500/20">DESARROLLO</span>
         </div>
 
         <div class="crypto-glass-card rounded-2xl p-4 flex items-center justify-between">
@@ -27,7 +27,7 @@
             <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider block">Garantía de Calidad</span>
             <h2 class="text-xl font-bold text-white font-mono mt-0.5">{{ enQA }} <span class="text-xs text-slate-500 font-sans font-normal">testing</span></h2>
           </div>
-          <span class="text-[10px] font-mono text-purple-400 bg-purple-500/10 px-2 py-1 rounded border border-purple-500/20">QA STAGE</span>
+          <span class="text-[10px] font-mono text-purple-400 bg-purple-500/10 px-2 py-1 rounded border border-purple-500/20">PRUEBAS</span>
         </div>
 
         <div class="crypto-glass-card rounded-2xl p-4 flex items-center justify-between">
@@ -82,7 +82,7 @@
               @if (graficoResolucionIngenieros) { <apx-chart [series]="graficoResolucionIngenieros.series" [chart]="graficoResolucionIngenieros.chart" [plotOptions]="graficoResolucionIngenieros.plotOptions" [colors]="graficoResolucionIngenieros.colors" [xaxis]="graficoResolucionIngenieros.xaxis"></apx-chart> }
             </div>
           </div>
-          <div class="text-[9px] text-slate-500 font-mono mt-2 text-right">MÉTRICAS SISTEMA: <span class="text-emerald-400 font-bold">ONLINE</span></div>
+          <div class="text-[9px] text-slate-500 font-mono mt-2 text-right">MÉTRICAS SISTEMA: <span class="text-emerald-400 font-bold">ACTIVAS</span></div>
         </div>
       </div>
 
@@ -112,7 +112,7 @@
             <span class="text-[10px] text-indigo-400 font-bold uppercase tracking-wider block">Asignaciones en Sprint</span>
             <h2 class="text-lg font-bold text-white font-mono mt-0.5">{{ tckAsignadosDev }} <span class="text-xs text-slate-500 font-sans font-normal">items</span></h2>
           </div>
-          <span class="text-[9px] text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded font-mono border border-indigo-500/20">SPRINT LOAD</span>
+          <span class="text-[9px] text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded font-mono border border-indigo-500/20">CARGA SPRINT</span>
         </div>
 
         <div class="crypto-glass-card rounded-2xl p-4 flex justify-between items-center">
@@ -120,7 +120,7 @@
             <span class="text-[10px] text-cyan-400 font-bold uppercase tracking-wider block">Trabajo en Progreso (WIP)</span>
             <h2 class="text-lg font-bold text-white font-mono mt-0.5">{{ tckActivosWIPDev }} <span class="text-xs text-slate-500 font-sans font-normal">en curso</span></h2>
           </div>
-          <span class="text-[9px] text-cyan-400 bg-cyan-500/10 px-2 py-1 rounded font-mono border border-cyan-500/20" [class.animate-pulse]="tckActivosWIPDev > 3">WIP LIMIT</span>
+          <span class="text-[9px] text-cyan-400 bg-cyan-500/10 px-2 py-1 rounded font-mono border border-cyan-500/20" [class.animate-pulse]="tckActivosWIPDev > 3">LÍMITE WIP</span>
         </div>
 
         <div class="crypto-glass-card rounded-2xl p-4 flex justify-between items-center">
@@ -128,7 +128,7 @@
             <span class="text-[10px] text-rose-400 font-bold uppercase tracking-wider block">Fallas en Pruebas (Rebotes)</span>
             <h2 class="text-lg font-bold text-rose-400 font-mono mt-0.5">{{ tckDevueltosDev }} <span class="text-xs text-slate-500 font-sans font-normal">reabiertos</span></h2>
           </div>
-          <span class="text-[9px] text-rose-400 bg-rose-500/10 px-2 py-1 rounded font-mono border border-rose-500/20">QA BOUNCE</span>
+          <span class="text-[9px] text-rose-400 bg-rose-500/10 px-2 py-1 rounded font-mono border border-rose-500/20">RETRABAJO</span>
         </div>
 
         <div class="crypto-glass-card rounded-2xl p-4 flex justify-between items-center">
@@ -136,7 +136,7 @@
             <span class="text-[10px] text-amber-400 font-bold uppercase tracking-wider block">Impedimentos Activos</span>
             <h2 class="text-lg font-bold text-amber-400 font-mono mt-0.5">{{ tckBloqueadosDev }} <span class="text-xs text-amber-500/50 font-sans font-normal">bloqueos</span></h2>
           </div>
-          <span class="text-[9px] text-amber-400 bg-amber-500/10 px-2 py-1 rounded font-mono border border-amber-500/20">BLOCKERS</span>
+          <span class="text-[9px] text-amber-400 bg-amber-500/10 px-2 py-1 rounded font-mono border border-amber-500/20">BLOQUEOS</span>
         </div>
       </div>
 

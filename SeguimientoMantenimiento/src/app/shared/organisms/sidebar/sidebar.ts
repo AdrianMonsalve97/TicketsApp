@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavigationStateService } from '../../../core/services/navigation-state';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { Roles } from '../../../models/enums/roles';
 
@@ -14,6 +14,7 @@ import { Roles } from '../../../models/enums/roles';
 export class SidebarComponent {
   protected navState = inject(NavigationStateService);
   private authService = inject(AuthService);
+  private router = inject(Router);
 
   public RolesEnum = Roles;
   public usuarioLogueadoRol = computed(() => this.authService.currentRole());
@@ -28,5 +29,11 @@ export class SidebarComponent {
 
   closeCallback(event: Event): void {
     this.navState.setSidebarVisible(false);
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.navState.setSidebarVisible(false);
+    this.router.navigateByUrl('/login');
   }
 }

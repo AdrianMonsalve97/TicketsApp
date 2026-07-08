@@ -6,7 +6,10 @@ export interface UsuarioDto {
   nombres: string;
   apellidos?: string | null;
   rol: BackendRol;
-  idArea?: string | null;
+  idArea?: string | number | null;
   activo: boolean;
   bloqueado: boolean;
+  intentosFallidos?: number;
+  fechaBloqueo?: string | null;
+  contrasenaExpiraEn?: string | null;
 }

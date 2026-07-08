@@ -6,6 +6,7 @@ import { User } from '../../models/interfaces/user.model';
 import { API_BASE_URL } from './api.config';
 import { ApiResponse } from '../../models/interfaces/api-response.model';
 import { LoginResponseDto } from '../../models/interfaces/auth-api.model';
+import { backendRolToRole } from '../../models/utils/role.utils';
 
 const TOKEN_KEY = 'ticketshex_token';
 const TOKEN_EXPIRATION_KEY = 'ticketshex_token_expiration';
@@ -120,34 +121,18 @@ export class AuthService {
 
   private mapAuthenticatedUser(session: LoginResponseDto): User {
     const roleFromToken = this.extractRoleFromToken(session.token) ?? session.usuario.rol;
-      return {
+    return {
       idUsuario: String(session.usuario.idUsuario),
       nombreUsuario: session.usuario.nombreUsuario,
       nombres: session.usuario.nombres,
       apellidos: '',
-      rol: this.mapRol(roleFromToken),
+      rol: backendRolToRole(roleFromToken),
       idArea: null,
       activo: true,
       password: '',
-      debeCambiarContrasena: session.usuario.debeCambiarContrasena ?? false,
+      debeCambiarContrasena: false,
       avatarUrl: '',
     };
-  }
-
-  private mapRol(rol: string): Roles {
-    const normalized = (rol ?? '').toString().trim().toLowerCase();
-    const roles: Record<string, Roles> = {
-      Desarrollador: Roles.Desarrollador,
-      Developer: Roles.Desarrollador,
-      QA: Roles.Qa,
-      LiderTecnico: Roles.Lider_Tecnico,
-      Planner: Roles.Product_Owner,
-      desarrollador: Roles.Desarrollador,
-      qa: Roles.Qa,
-      lidertecnico: Roles.Lider_Tecnico,
-      planner: Roles.Product_Owner,
-    };
-    return roles[rol] ?? roles[normalized] ?? Roles.Desarrollador;
   }
 
   private extractRoleFromToken(token: string): string | null {

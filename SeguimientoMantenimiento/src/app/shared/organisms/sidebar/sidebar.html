@@ -29,7 +29,7 @@
 
     <button
       type="button"
-      [routerLink]="['/users']"
+      [routerLink]="usuarioLogueadoRol() === RolesEnum.Product_Owner ? ['/users'] : ['/profile']"
       routerLinkActive="bg-white/10 text-white border border-white/20"
       (click)="closeCallback($event)"
       class="group/item relative w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer shrink-0"
@@ -82,6 +82,7 @@
 
     <button
       type="button"
+      (click)="logout()"
       class="group/item relative w-10 h-10 flex items-center justify-center rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer shrink-0"
     >
       <i class="pi pi-sign-out text-lg text-slate-400 group-hover/item:text-red-400 block"></i>

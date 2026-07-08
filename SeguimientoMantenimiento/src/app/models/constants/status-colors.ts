@@ -26,6 +26,7 @@ export const StatusColors: Record<string, string> = {
   [TicketStatus.EN_REVISION_QA]: 'bg-[#1a1908] text-[#fef08a] border border-[#eab308]/40 font-mono tracking-wide px-2 py-0.5 rounded text-[10px] font-bold inline-block',
 
   [TicketStatus.APROBADO_PARA_QA]: 'bg-[#081a18] text-[#99f6e4] border border-[#14b8a6]/40 font-mono tracking-wide px-2 py-0.5 rounded text-[10px] font-bold inline-block',
+  [TicketStatus.APROBADO_QA]: 'bg-[#081a18] text-[#99f6e4] border border-[#14b8a6]/40 font-mono tracking-wide px-2 py-0.5 rounded text-[10px] font-bold inline-block',
 
   [TicketStatus.PENDIENTE_CERTIFICACION]: 'bg-[#1a1108] text-[#fed7aa] border border-[#f97316]/40 font-mono tracking-wide px-2 py-0.5 rounded text-[10px] font-bold inline-block',
 

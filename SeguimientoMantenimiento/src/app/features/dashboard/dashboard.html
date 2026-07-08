@@ -2,15 +2,13 @@
 
   <div class="contenido-hud-vivo w-full flex flex-col gap-6">
 
-    <div class="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-blue-500/5 blur-[120px] pointer-events-none z-0"></div>
-    <div class="absolute bottom-[10%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-purple-500/5 blur-[120px] pointer-events-none z-0"></div>
     <div class="relative z-10">
       <app-analytics-charts [ticketsDataSource]="tickets()" [usuarioRol]="usuarioRol()" [usuarioFirmaId]="usuarioFirmaId()" [usuarioNombre]="usuarioNombre()"></app-analytics-charts>
     </div>
 
     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mt-2 relative z-10">
       <div>
-        <h1 class="text-2xl font-bold text-white tracking-tight">Consola de Operations</h1>
+        <h1 class="text-2xl font-bold text-white tracking-tight">Consola de Operaciones</h1>
         <p class="text-xs text-slate-400 mt-0.5">Control de flujo, auditoría de requerimientos y balanceo táctico de sprints.</p>
       </div>
 
@@ -44,17 +42,17 @@
   </div>
 
   <app-modal [visible]="modalAbierto" (close)="modalAbierto = false" [title]="'Crear Nuevo Requerimiento'" [size]="'md'">
-    @if (modalAbierto) { <app-formulario-ticket-stepper [usuariosAsignables]="usuariosAsignables()" [rolActual]="usuarioRol()" [usuarioActualId]="usuarioFirmaId()" [usuarioActualNombre]="usuarioNombre()" (onFormComplete)="procesarTicketCreado($event)"></app-formulario-ticket-stepper> }
+    @if (modalAbierto) { <app-formulario-ticket-stepper [usuariosAsignables]="usuariosAsignables()" [rolActual]="usuarioRol()" [puedeAsignarUsuarios]="puedeAsignarUsuarios()" [usuarioActualId]="usuarioFirmaId()" [usuarioActualNombre]="usuarioNombre()" (onFormComplete)="procesarTicketCreado($event)"></app-formulario-ticket-stepper> }
   </app-modal>
 
-  <app-modal [visible]="modalDetalleAbierto" (close)="modalDetalleAbierto = false" [title]="'Detalle Ticket'" [size]="'lg'">
+  <app-modal [visible]="modalDetalleAbierto" (close)="modalDetalleAbierto = false" [title]="'Detalle Ticket'" [size]="'lg' ">
     @if (modalDetalleAbierto && ticketSeleccionado) {
-      <div class="space-y-4 p-5 text-xs font-mono text-slate-300 max-w-4xl max-h-[80vh] overflow-y-auto custom-scrollbar">
+      <div class="space-y-4 p-5 text-xs font-mono text-slate-300 max-w-4xl max-h-[80vh] overflow-y-auto custom-scrollbar mt-2">
         <div [class.border-rose-500/40]="tieneFugaInformacion(ticketSeleccionado)" [class.border-white/10]="!tieneFugaInformacion(ticketSeleccionado)" class="bg-white/[0.02] border rounded-xl p-4 relative overflow-hidden transition-all duration-300">
           <div class="flex flex-wrap justify-between items-center gap-2 mb-2">
             <div class="flex gap-2">
               <span class="text-blue-400 text-[10px] font-bold uppercase">UUID: {{ ticketSeleccionado.idTicket }}</span>
-              <span class="text-cyan-400 text-[10px] font-bold uppercase">CASO_ALM: {{ ticketSeleccionado.codigoCaso }}</span>
+              <span class="text-cyan-400 text-[10px] font-bold uppercase">CASO: {{ ticketSeleccionado.codigoCaso }}</span>
               @if (tieneFugaInformacion(ticketSeleccionado)) {
                 <span class="flex h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_8px_#f43f5e] animate-pulse my-auto"></span>
               }
@@ -70,18 +68,19 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div class="bg-white/[0.01] border border-white/5 rounded-xl p-3 flex flex-col gap-0.5">
-            <span class="text-slate-500 font-bold text-[9px] uppercase tracking-wider">Líder Técnico:</span>
-            <span class="text-slate-200 font-sans text-xs mt-1"><i class="pi pi-code text-indigo-400 mr-1"></i> {{ ticketSeleccionado.desarrolladorAsignadoId || 'S/A' }}</span>
+            <span class="text-slate-500 font-bold text-[9px] uppercase tracking-wider">Responsable asignado:</span>
+            <span class="text-slate-200 font-sans text-xs mt-1"><i class="pi pi-user text-indigo-400 mr-1"></i> {{ obtenerNombreUsuarioAsignado(ticketSeleccionado) }}</span>
           </div>
           <div class="bg-white/[0.01] border border-white/5 rounded-xl p-3 flex flex-col gap-0.5">
-            <span class="text-slate-500 font-bold text-[9px] uppercase tracking-wider">Analista QA:</span>
-            <span class="text-slate-200 font-sans text-xs mt-1"><i class="pi pi-shield text-purple-400 mr-1"></i> {{ ticketSeleccionado.qaAsignadoId || 'S/A' }}</span>
+            <span class="text-slate-500 font-bold text-[9px] uppercase tracking-wider">Rol del responsable:</span>
+            <span class="text-slate-200 font-sans text-xs mt-1"><i class="pi pi-shield text-purple-400 mr-1"></i> {{ obtenerRolUsuarioAsignado(ticketSeleccionado) }}</span>
           </div>
           <div class="bg-white/[0.01] border border-white/5 rounded-xl p-3 flex flex-col gap-0.5">
-            <span class="text-slate-500 font-bold text-[9px] uppercase tracking-wider">L?der T?cnico:</span>
-            <span class="text-slate-200 font-sans text-xs mt-1"><i class="pi pi-star text-amber-400 mr-1"></i> {{ ticketSeleccionado.ltAsignadoId || 'S/A' }}</span>
+            <span class="text-slate-500 font-bold text-[9px] uppercase tracking-wider">Ultima accion por:</span>
+            <span class="text-slate-200 font-sans text-xs mt-1"><i class="pi pi-star text-amber-400 mr-1"></i> {{ obtenerUltimoUsuarioAccion(ticketSeleccionado) }}</span>
           </div>
         </div>
+
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div class="bg-white/[0.01] border border-white/5 rounded-xl p-2.5 flex justify-between items-center">
@@ -101,7 +100,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="bg-white/[0.01] border border-white/5 rounded-xl p-4 flex flex-col gap-1.5">
             <span class="text-rose-400 font-bold text-[10px] uppercase tracking-wider">ANÁLISIS DE CAUSA RAÍZ:</span>
-            <div class="text-slate-300 font-sans text-xs bg-rose-950/10 p-3 rounded-lg border border-rose-500/10 min-h-[60px]">{{ ticketSeleccionado.causaRaiz || 'Pendiente de documentaci?n.' }}</div>
+            <div class="text-slate-300 font-sans text-xs bg-rose-950/10 p-3 rounded-lg border border-rose-500/10 min-h-[60px]">{{ ticketSeleccionado.causaRaiz || 'Pendiente de documentación.' }}</div>
           </div>
           <div class="bg-white/[0.01] border border-white/5 rounded-xl p-4 flex flex-col gap-1.5">
             <span class="text-emerald-400 font-bold text-[10px] uppercase tracking-wider">SOLUCIÓN PROPUESTA:</span>
@@ -125,11 +124,11 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="flex flex-col gap-1.5">
             <label class="text-slate-500 font-bold uppercase text-[9px]">Título:</label>
-            <input type="text" [(ngModel)]="ticketSeleccionado.titulo" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none" />
+            <input type="text" [(ngModel)]="ticketSeleccionado.titulo" [disabled]="!puedeEditarDefinicionTicket()" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed" />
           </div>
           <div class="flex flex-col gap-1.5">
             <label class="text-slate-500 font-bold uppercase text-[9px]">Descripción:</label>
-            <textarea [(ngModel)]="ticketSeleccionado.descripcion" rows="2" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none resize-none"></textarea>
+            <textarea [(ngModel)]="ticketSeleccionado.descripcion" [disabled]="!puedeEditarDefinicionTicket()" rows="2" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none resize-none disabled:opacity-60 disabled:cursor-not-allowed"></textarea>
           </div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -141,14 +140,14 @@
           </div>
             <div class="flex flex-col gap-1.5">
               <label class="text-slate-500 font-bold uppercase text-[9px]">Usuario Asignado:</label>
-              <select [(ngModel)]="ticketSeleccionado.idUsuarioAsignado" [disabled]="usuarioRol() !== 'PMO_LT'" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none cursor-pointer font-mono disabled:opacity-60 disabled:cursor-not-allowed">
+              <select [(ngModel)]="ticketSeleccionado.idUsuarioAsignado" [disabled]="!puedeReasignarTickets()" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none cursor-pointer font-mono disabled:opacity-60 disabled:cursor-not-allowed">
                 <option [ngValue]="usuarioFirmaIdNumero()" class="bg-[#0d0d12] text-slate-300">
                   {{ usuarioNombre() }} - Yo
                 </option>
-                @if (usuarioRol() === 'PMO_LT') {
+                @if (puedeReasignarTickets()) {
                   <option [ngValue]="0" class="bg-[#0d0d12] text-slate-300">Sin asignar</option>
                   @for (usuario of usuariosAsignables(); track usuario.idUsuario) {
-                    <option [ngValue]="usuario.idUsuario" class="bg-[#0d0d12] text-slate-300">
+                    <option [ngValue]="+usuario.idUsuario" class="bg-[#0d0d12] text-slate-300">
                       {{ usuario.nombres }} {{ usuario.apellidos }} - {{ usuario.nombreUsuario }}
                     </option>
                   }
@@ -171,7 +170,7 @@
               {{ ticketSeleccionado.estadoActual }}
             </span>
           </div>
-          <textarea [(ngModel)]="ticketSeleccionado.carpetaMedios" rows="2" placeholder="Comentario corto sobre la actualizaci?n" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-3 text-slate-200 font-sans focus:outline-none resize-none"></textarea>
+          <textarea [(ngModel)]="ticketSeleccionado.carpetaMedios" rows="2" placeholder="Comentario corto sobre la actualización" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-3 text-slate-200 font-sans focus:outline-none resize-none"></textarea>
         </div>
         <div class="flex justify-end gap-3 mt-4 pt-3 border-t border-white/5">
           <button (click)="modalEditarAbierto = false" class="px-4 py-2 font-bold font-mono text-slate-500 hover:text-slate-300 transition-colors cursor-pointer">CANCELAR</button>

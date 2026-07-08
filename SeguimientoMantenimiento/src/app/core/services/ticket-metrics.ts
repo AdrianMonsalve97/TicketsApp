@@ -50,6 +50,7 @@ export function calculateMetrics(data: Ticket[], usuarioFirmaId: string): ChartM
       TicketStatus.APROBADO_PARA_QA,
       TicketStatus.DESPLIEGUE_A_QA,
       TicketStatus.EN_REVISION_QA,
+      TicketStatus.APROBADO_QA,
       TicketStatus.PENDIENTE_CERTIFICACION,
     ].includes(t.estadoActual),
   ).length;
@@ -64,6 +65,7 @@ export function calculateMetrics(data: Ticket[], usuarioFirmaId: string): ChartM
         TicketStatus.APROBADO_PARA_QA,
         TicketStatus.DESPLIEGUE_A_QA,
         TicketStatus.EN_REVISION_QA,
+        TicketStatus.APROBADO_QA,
         TicketStatus.PENDIENTE_CERTIFICACION,
       ].includes(t.estadoActual),
   ).length;
@@ -81,6 +83,7 @@ export function calculateMetrics(data: Ticket[], usuarioFirmaId: string): ChartM
       TicketStatus.APROBADO_PARA_QA,
       TicketStatus.DESPLIEGUE_A_QA,
       TicketStatus.EN_REVISION_QA,
+      TicketStatus.APROBADO_QA,
       TicketStatus.PENDIENTE_CERTIFICACION,
     ].includes(t.estadoActual)
   ).length;
@@ -125,7 +128,13 @@ export function calculateMetrics(data: Ticket[], usuarioFirmaId: string): ChartM
     tckAsignadosDev > 0 ? Math.round((tckBloqueadosDev / tckAsignadosDev) * 100) : 0;
 
   const tckPendientesQA = data.filter((t) =>
-    [TicketStatus.APROBADO_PARA_QA, TicketStatus.DESPLIEGUE_A_QA].includes(t.estadoActual)
+    [
+      TicketStatus.APROBADO_PARA_QA,
+      TicketStatus.DESPLIEGUE_A_QA,
+      TicketStatus.EN_REVISION_QA,
+      TicketStatus.APROBADO_QA,
+      TicketStatus.PENDIENTE_CERTIFICACION,
+    ].includes(t.estadoActual)
   ).length;
   const poolQA = tckPendientesQA + certificados;
   const kpiEficienciaCertificacion =
@@ -150,6 +159,8 @@ export function calculateMetrics(data: Ticket[], usuarioFirmaId: string): ChartM
       TicketStatus.APROBADO_PARA_QA,
       TicketStatus.DESPLIEGUE_A_QA,
       TicketStatus.EN_REVISION_QA,
+      TicketStatus.APROBADO_QA,
+      TicketStatus.PENDIENTE_CERTIFICACION,
     ].includes(t.estadoActual)
   ).length;
   const cReabiertos = misTickets.filter((t) =>

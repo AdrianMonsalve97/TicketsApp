@@ -11,6 +11,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { LogoLoaderComponent } from '../../shared/atoms/logo-loader/logo-loader';
 import { ParametroService } from '../../core/services/parametro';
 import { Parametro } from '../../models/interfaces/parametro.model';
+import { canManageUsers } from '../../models/utils/role.utils';
 
 @Component({
   selector: 'app-user-management',
@@ -36,6 +37,7 @@ export class UserManagementComponent implements OnInit {
     { key: 'apellidos', label: 'APELLIDOS' },
     { key: 'rol', label: 'ROL ASIGNADO', type: 'badge' as const },
     { key: 'activo', label: 'ESTADO', type: 'badge' as const },
+    { key: 'bloqueado', label: 'BLOQUEADO', type: 'badge' as const },
   ];
 
   public usuarios = signal<User[]>([]);
@@ -51,13 +53,13 @@ export class UserManagementComponent implements OnInit {
   public credencialesCreacion: { nombreUsuario: string; contrasena: string } | null = null;
 
   ngOnInit(): void {
+    if (!canManageUsers(this.usuarioLogueadoRol())) {
+      return;
+    }
+
     this.userService.getUsers().subscribe({
       next: (data) => {
         this.usuarios.set(data);
-        if (this.usuarioLogueadoRol() !== Roles.Product_Owner) {
-          const propio = data.find((u) => u.idUsuario === this.usuarioLogueadoId());
-          if (propio) this.abrirEditor(propio);
-        }
       }
     });
     this.parametroService.getAreasTicket().subscribe({
@@ -79,7 +81,7 @@ export class UserManagementComponent implements OnInit {
   });
 
   public abrirCreador(): void {
-    if (this.usuarioLogueadoRol() !== Roles.Product_Owner) return;
+    if (!canManageUsers(this.usuarioLogueadoRol())) return;
     this.modoEdicion = false;
     this.usuarioSeleccionado = this.inicializarUsuario();
     this.modalAbierto = true;
@@ -87,7 +89,7 @@ export class UserManagementComponent implements OnInit {
 
   public abrirEditor(usuario: User): void {
     if (
-      this.usuarioLogueadoRol() !== Roles.Product_Owner &&
+      !canManageUsers(this.usuarioLogueadoRol()) &&
       usuario.idUsuario !== this.usuarioLogueadoId()
     ) {
       return;
@@ -127,7 +129,7 @@ export class UserManagementComponent implements OnInit {
           this.usuarios.update((list) => [created, ...list]);
           this.credencialesCreacion = {
             nombreUsuario: created.nombreUsuario,
-            contrasena: this.usuarioSeleccionado.password || '123456',
+            contrasena: this.usuarioSeleccionado.password,
           };
           this.cerrarFormulario();
           this.modalCredencialesAbierto = true;
@@ -165,20 +167,36 @@ export class UserManagementComponent implements OnInit {
     if (!String(this.usuarioSeleccionado.nombreUsuario ?? '').trim()) return 'El nombre de usuario es obligatorio.';
     if (!String(this.usuarioSeleccionado.nombres ?? '').trim()) return 'Los nombres son obligatorios.';
     if (!String(this.usuarioSeleccionado.idUsuario ?? '').trim()) return 'El ID de usuario es obligatorio.';
+    if (!Number(this.usuarioSeleccionado.idUsuario)) return 'El ID de usuario debe ser numérico.';
     if (!this.usuarioSeleccionado.rol) return 'Debes seleccionar un rol.';
-    if (!this.modoEdicion && !String(this.usuarioSeleccionado.password ?? '').trim()) return 'La contrase?a inicial es obligatoria para crear el usuario.';
+    if (!this.modoEdicion) {
+      const password = String(this.usuarioSeleccionado.password ?? '');
+      if (!password.trim()) return 'La contraseña inicial es obligatoria para crear el usuario.';
+      if (!this.esContrasenaValida(password)) {
+        return 'La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial.';
+      }
+    }
     return null;
   }
 
-  private manejarError(error: unknown, fallback: string): void {
+  private esContrasenaValida(contrasena: string): boolean {
+    return (
+      contrasena.length >= 8 &&
+      /[A-ZÁÉÍÓÚÑ]/.test(contrasena) &&
+      /\d/.test(contrasena) &&
+      /[^\p{L}\d\s]/u.test(contrasena)
+    );
+  }
+
+  private manejarError(error: any, fallback: string): void {
     console.error(error);
     this.isLoading = false;
-    this.errorMessage = fallback;
+    this.errorMessage = error?.error?.message || error?.error?.title || fallback;
     this.modalErrorAbierto = true;
   }
 
   public eliminarUsuario(usuario: User): void {
-    if (this.usuarioLogueadoRol() !== Roles.Product_Owner) return;
+    if (!canManageUsers(this.usuarioLogueadoRol())) return;
     this.userService.deleteUser(usuario.idUsuario).subscribe({
       next: () => {
         this.usuarios.update((list) => list.filter((u) => u.idUsuario !== usuario.idUsuario));
@@ -196,7 +214,7 @@ export class UserManagementComponent implements OnInit {
       idArea: null,
       activo: true,
       password: '',
-      debeCambiarContrasena: true,
+      debeCambiarContrasena: false,
       avatarUrl: '',
     };
   }

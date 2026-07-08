@@ -7,20 +7,20 @@
   <ng-template #pasoDefinicion>
     <form [formGroup]="formPasoUno" class="flex flex-col gap-4">
       <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-semibold text-slate-300">Título del Requerimiento</label>
+        <label class="text-xs font-semibold text-slate-300">Título del requerimiento</label>
         <input
           type="text"
           formControlName="titulo"
-          placeholder="Ej: Error en pasarela de pagos..."
+          placeholder="Ej: Error en pasarela de pagos"
           class="w-full p-3 bg-black/40 border border-white/10 text-xs text-white rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors" />
       </div>
 
       <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-semibold text-slate-300">Descripción Técnica</label>
+        <label class="text-xs font-semibold text-slate-300">Descripción técnica</label>
         <textarea
           formControlName="descripcion"
           rows="4"
-          placeholder="Detalles del comportamiento esperado..."
+          placeholder="Detalles del comportamiento esperado"
           class="w-full p-3 bg-black/40 border border-white/10 text-xs text-white rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors resize-none"></textarea>
       </div>
     </form>
@@ -29,7 +29,7 @@
   <ng-template #pasoAsignacion>
     <form [formGroup]="formPasoDos" class="flex flex-col gap-4">
       <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-semibold text-slate-300">Código de Caso</label>
+        <label class="text-xs font-semibold text-slate-300">Código de caso</label>
         <input
           type="text"
           formControlName="codigoCaso"
@@ -49,12 +49,13 @@
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-semibold text-slate-300">Usuario Asignado</label>
+          <label class="text-xs font-semibold text-slate-300">Usuario asignado</label>
           <select
             formControlName="idUsuarioAsignado"
-            class="w-full p-3 bg-black/40 border border-white/10 text-xs text-slate-300 rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors cursor-pointer">
+            [disabled]="!puedeAsignarUsuarios()"
+            class="w-full p-3 bg-black/40 border border-white/10 text-xs text-slate-300 rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed">
             @for (usuario of usuariosFiltrados(); track trackUser($index, usuario)) {
-              <option [ngValue]="usuario.idUsuario" class="bg-[#0d0d12] text-slate-300">
+              <option [ngValue]="+usuario.idUsuario" class="bg-[#0d0d12] text-slate-300">
                 {{ usuario.nombres }} {{ usuario.apellidos }} - {{ usuario.nombreUsuario }}
               </option>
             }

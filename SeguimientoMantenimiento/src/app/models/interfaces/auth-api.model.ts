@@ -8,7 +8,7 @@ export interface LoginResponseDto {
     nombreUsuario: string;
     nombres: string;
     rol: BackendRol;
-    area?: string | null;
+    area?: string | number | null;
     debeCambiarContrasena?: boolean;
   };
 }
