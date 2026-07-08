@@ -1,13 +1,41 @@
-
-/* Eliminamos el fondo, el borde y la sombra por defecto que mete PrimeNG v18 */
 .popover-transparente {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
 }
 
-/* Opcional: Si aparece una pequeña flecha apuntando al avatar y quieres quitarla */
 .popover-transparente::before,
 .popover-transparente::after {
   display: none !important;
+}
+
+.notificaciones-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(96, 165, 250, 0.32) transparent;
+  scrollbar-gutter: stable;
+}
+
+.notificaciones-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+
+.notificaciones-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.notificaciones-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    rgba(96, 165, 250, 0.34),
+    rgba(129, 140, 248, 0.24)
+  );
+  border-radius: 999px;
+}
+
+.notificaciones-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(96, 165, 250, 0.55),
+    rgba(129, 140, 248, 0.42)
+  );
 }
