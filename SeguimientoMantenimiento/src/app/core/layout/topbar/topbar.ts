@@ -48,7 +48,17 @@ export class Topbar {
     return this.authService.currentRole();
   }
 
-  public avatarUrl = computed(() => this.authService.currentUser()?.avatarUrl || '');
+  public avatarUrl = computed(() => {
+    const user = this.authService.currentUser();
+    if (!user) return '';
+    if (user.avatarUrl) return user.avatarUrl;
+    if (user.imagenPerfilBase64) {
+      return user.imagenPerfilBase64.startsWith('data:')
+        ? user.imagenPerfilBase64
+        : `data:image/png;base64,${user.imagenPerfilBase64}`;
+    }
+    return '';
+  });
   public avatarFallback = computed(() =>
     (this.authService.currentUser()?.nombres || this.authService.currentUser()?.nombreUsuario || 'U')
       .trim()
@@ -304,7 +314,7 @@ export class Topbar {
 
   private esUrgenteSinHu(ticket: Ticket): boolean {
     return (
-      (!ticket.historiaUsuario || ticket.historiaUsuario.trim() === '') &&
+      !(ticket.nombreHu ?? ticket.historiaUsuario)?.trim() &&
       [
         TicketStatus.EN_ANALISIS,
         TicketStatus.EN_PROCESO,

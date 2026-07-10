@@ -1,0 +1,8 @@
+:host {
+  pointer-events: none;
+}
+
+section,
+button {
+  pointer-events: auto;
+}

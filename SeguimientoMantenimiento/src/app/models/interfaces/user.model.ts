@@ -7,6 +7,7 @@ export interface User {
   apellidos: string;
   rol: Roles;
   idArea: number | null;
+  imagenPerfilBase64?: string | null;
   avatarUrl?: string;
   activo: boolean;
   bloqueado?: boolean;

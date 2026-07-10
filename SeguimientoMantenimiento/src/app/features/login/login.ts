@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
+import { CatalogoSyncService } from '../../core/services/catalogo-sync.service';
 
 @Component({
   selector: 'app-login',
@@ -13,6 +14,7 @@ import { AuthService } from '../../core/services/auth.service';
 export class Login {
   private router = inject(Router);
   private authService = inject(AuthService);
+  private catalogoSyncService = inject(CatalogoSyncService);
 
   public isLoading = false;
   public errorMessage = '';
@@ -27,7 +29,16 @@ export class Login {
       this.isLoading = true;
       this.errorMessage = '';
       this.authService.login(this.credenciales.nombreUsuario, this.credenciales.password).subscribe({
-        next: () => this.router.navigate(['/dashboard']),
+        next: (session) => {
+          if (session.usuario.debeCambiarContrasena) {
+            this.router.navigate(['/change-password']);
+            return;
+          }
+
+          this.catalogoSyncService.sincronizar().subscribe({
+            next: () => this.router.navigate(['/dashboard']),
+          });
+        },
         error: () => {
           this.errorMessage = 'No fue posible iniciar sesion. Verifica usuario y contrasena.';
           this.isLoading = false;

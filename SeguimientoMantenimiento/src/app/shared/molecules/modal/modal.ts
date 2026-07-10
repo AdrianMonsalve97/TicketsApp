@@ -48,7 +48,7 @@ export class Modal implements OnDestroy {
       case 'lg':
         return 'max-w-3xl';
       case 'xl':
-        return 'max-w-5xl';
+        return 'max-w-7xl';
       case 'full':
         return 'max-w-full h-screen rounded-none border-none m-0';
       default:

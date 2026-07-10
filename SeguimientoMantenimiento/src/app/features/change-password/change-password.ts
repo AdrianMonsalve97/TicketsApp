@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { CatalogoSyncService } from '../../core/services/catalogo-sync.service';
 
 @Component({
   selector: 'app-change-password',
@@ -12,6 +13,7 @@ import { AuthService } from '../../core/services/auth.service';
 })
 export class ChangePasswordComponent {
   private authService = inject(AuthService);
+  private catalogoSyncService = inject(CatalogoSyncService);
   private router = inject(Router);
 
   public isLoading = false;
@@ -46,9 +48,10 @@ export class ChangePasswordComponent {
       next: () => {
         this.successMessage = 'Contraseña actualizada. Ya puedes continuar.';
         this.isLoading = false;
-        const updated = { ...user, debeCambiarContrasena: false };
-        localStorage.setItem('ticketshex_user', JSON.stringify(updated));
-        setTimeout(() => this.router.navigateByUrl('/dashboard'), 800);
+        this.authService.marcarContrasenaActualizada();
+        this.catalogoSyncService.sincronizar().subscribe({
+          next: () => setTimeout(() => this.router.navigateByUrl('/dashboard'), 800),
+        });
       },
       error: () => {
         this.errorMessage = 'No se pudo actualizar la contraseña.';

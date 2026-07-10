@@ -7,6 +7,7 @@ export interface UsuarioDto {
   apellidos?: string | null;
   rol: BackendRol;
   idArea?: string | number | null;
+  imagenPerfilBase64?: string | null;
   activo: boolean;
   bloqueado: boolean;
   intentosFallidos?: number;

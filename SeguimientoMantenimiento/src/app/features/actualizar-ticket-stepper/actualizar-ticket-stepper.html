@@ -1,0 +1,310 @@
+<section class="flex flex-col gap-5 p-4 text-xs text-slate-300">
+  <div class="bg-white/5 border border-white/5 p-3 rounded-xl text-slate-200 font-sans font-bold text-sm flex flex-wrap justify-between items-center gap-2">
+    <span class="truncate pr-2">{{ ticket().titulo }}</span>
+    <div class="flex gap-2 shrink-0">
+      <span class="font-mono text-[10px] text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">{{ ticket().idTicket }}</span>
+      <span class="font-mono text-[10px] text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-500/20">{{ ticket().codigoCaso }}</span>
+    </div>
+  </div>
+
+  <nav class="grid grid-cols-2 lg:grid-cols-6 gap-2">
+    @for (step of steps; track step.id) {
+      <button
+        type="button"
+        (click)="setStep(step.id)"
+        class="min-h-14 rounded-lg border px-3 py-2 text-left transition-all"
+        [ngClass]="{
+          'bg-blue-500/15 border-blue-400/40 text-blue-100': activeStep === step.id,
+          'bg-white/[0.03] border-white/10 text-slate-400 hover:bg-white/[0.06]': activeStep !== step.id
+        }">
+        <span class="block text-[10px] font-bold uppercase">{{ step.label }}</span>
+        <span class="block text-[9px] text-slate-500 mt-0.5">{{ step.description }}</span>
+      </button>
+    }
+  </nav>
+
+  <div class="rounded-xl border border-white/5 bg-white/[0.02] p-4 min-h-[360px]">
+    <div class="flex items-center justify-between gap-3 mb-4">
+      <div>
+        <h3 class="text-sm text-white font-bold">{{ activeStepConfig.label }}</h3>
+        <p class="text-[10px] text-slate-500 mt-0.5">{{ activeStepConfig.description }}</p>
+      </div>
+      <button
+        type="button"
+        (click)="guardarPaso(activeStep)"
+        class="px-4 py-2 font-bold font-mono bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl shadow-lg transition-all cursor-pointer">
+        GUARDAR SECCION
+      </button>
+    </div>
+
+    @if (activeStep === 'definicion') {
+      <form [formGroup]="definicionForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Titulo</label>
+          <input formControlName="titulo" type="text" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed" />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Estado HU</label>
+          <select formControlName="idEstadoHistoriaUsuario" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none cursor-pointer">
+            <option [ngValue]="null" class="bg-[#0d0d12]">Sin definir</option>
+            @for (estadoHu of estadosHistoriaUsuario(); track trackParametro($index, estadoHu)) {
+              <option [ngValue]="estadoHu.idParametro" class="bg-[#0d0d12]">{{ estadoHu.nombre }}</option>
+            }
+          </select>
+        </div>
+        <label class="flex items-center gap-2 text-xs text-slate-300 md:col-span-2 bg-white/[0.03] border border-white/5 rounded-xl p-3">
+          <input formControlName="esDesarrollo" type="checkbox" class="accent-blue-500" />
+          Ticket con desarrollo asociado
+        </label>
+        <div class="flex flex-col gap-1.5 md:col-span-2">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Descripcion</label>
+          <textarea formControlName="descripcion" rows="4" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none resize-none disabled:opacity-60 disabled:cursor-not-allowed"></textarea>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">ID o nombre HU</label>
+          <input formControlName="historiaUsuario" type="text" placeholder="HU-12345, US-889 o codigo ALM" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none" />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">URL HU</label>
+          <input formControlName="urlHu" type="url" placeholder="https://..." class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none" />
+        </div>
+        <div class="flex flex-col gap-1.5 md:col-span-2">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Carpeta de medios</label>
+          <input formControlName="carpetaMedios" type="text" placeholder="Ruta o carpeta con evidencias" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none" />
+        </div>
+      </form>
+    }
+
+    @if (activeStep === 'asignacion') {
+      <form [formGroup]="asignacionForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Estado actual</label>
+          <select formControlName="estadoActual" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
+            @for (estado of estadosDisponibles(); track estado) {
+              <option [value]="estado" class="bg-[#0d0d12] text-slate-300">{{ estado }}</option>
+            }
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Usuario asignado</label>
+          <select formControlName="idUsuarioAsignado" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none cursor-pointer font-mono disabled:opacity-60 disabled:cursor-not-allowed">
+            <option [ngValue]="usuarioFirmaIdNumero()" class="bg-[#0d0d12] text-slate-300">
+              {{ usuarioNombre() }} - Yo
+            </option>
+            @if (puedeReasignar()) {
+              @for (usuario of usuariosAsignables(); track trackUser($index, usuario)) {
+                <option [ngValue]="+usuario.idUsuario" class="bg-[#0d0d12] text-slate-300">
+                  {{ usuario.nombres }} {{ usuario.apellidos }} - {{ usuario.nombreUsuario }}
+                </option>
+              }
+            }
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5 md:col-span-2">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Comentario</label>
+          <textarea formControlName="comentario" rows="3" placeholder="Comentario para auditoria" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-3 text-slate-200 focus:outline-none resize-none"></textarea>
+        </div>
+      </form>
+    }
+
+    @if (activeStep === 'diagnostico') {
+      <form [formGroup]="diagnosticoForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1.5 md:col-span-2">
+          <label class="text-rose-400 font-bold uppercase text-[9px]">Causa raiz</label>
+          <textarea formControlName="causaRaiz" rows="3" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-3 text-slate-200 font-sans focus:outline-none resize-none disabled:opacity-60 disabled:cursor-not-allowed"></textarea>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Severidad</label>
+          <select formControlName="idSeveridadDefecto" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none cursor-pointer">
+            <option [ngValue]="null" class="bg-[#0d0d12]">Sin definir</option>
+            @for (severidad of severidades(); track trackParametro($index, severidad)) {
+              <option [ngValue]="severidad.idParametro" class="bg-[#0d0d12]">{{ severidad.nombre }}</option>
+            }
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Ambiente confirmado</label>
+          <select formControlName="idAmbienteConfirmado" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none cursor-pointer">
+            <option [ngValue]="null" class="bg-[#0d0d12]">Sin definir</option>
+            @for (ambiente of ambientes(); track trackParametro($index, ambiente)) {
+              <option [ngValue]="ambiente.idParametro" class="bg-[#0d0d12]">{{ ambiente.nombre }}</option>
+            }
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Aplicacion afectada</label>
+          <select formControlName="idAplicativo" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
+            <option [ngValue]="null" class="bg-[#0d0d12]">Sin aplicacion</option>
+            @for (aplicativo of aplicativos; track aplicativo.idAplicativo) {
+              <option [ngValue]="aplicativo.idAplicativo" class="bg-[#0d0d12]">{{ aplicativo.nombre }}</option>
+            }
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Repositorio diagnosticado</label>
+          <select formControlName="idRepositorio" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
+            <option [ngValue]="null" class="bg-[#0d0d12]">Sin repositorio</option>
+            @for (repositorio of repositoriosDiagnostico; track repositorio.idRepositorio) {
+              <option [ngValue]="repositorio.idRepositorio" class="bg-[#0d0d12]">{{ repositorio.repositorio }}</option>
+            }
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Rama revisada</label>
+          <select formControlName="idRama" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
+            <option [ngValue]="null" class="bg-[#0d0d12]">Sin rama</option>
+            @for (rama of ramasRepositorio; track rama.idRama) {
+              <option [ngValue]="rama.idRama" class="bg-[#0d0d12]">{{ rama.nombreRama }}</option>
+            }
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Sintoma confirmado</label>
+          <textarea formControlName="sintomaConfirmado" rows="2" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-3 text-slate-200 focus:outline-none resize-none"></textarea>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Pasos de reproduccion</label>
+          <textarea formControlName="pasosReproduccion" rows="2" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-3 text-slate-200 focus:outline-none resize-none"></textarea>
+        </div>
+        <div class="flex flex-col gap-1.5 md:col-span-2">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Comentario</label>
+          <textarea formControlName="comentario" rows="2" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-3 text-slate-200 focus:outline-none resize-none"></textarea>
+        </div>
+      </form>
+    }
+
+    @if (activeStep === 'solucion') {
+      <form [formGroup]="solucionForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1.5 md:col-span-2">
+          <label class="text-emerald-400 font-bold uppercase text-[9px]">Solucion propuesta</label>
+          <textarea formControlName="solucionPropuesta" rows="3" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-3 text-slate-200 font-sans focus:outline-none resize-none disabled:opacity-60 disabled:cursor-not-allowed"></textarea>
+        </div>
+        <div class="flex flex-col gap-1.5 md:col-span-2">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Solucion aplicada</label>
+          <textarea formControlName="solucionAplicada" rows="2" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-3 text-slate-200 focus:outline-none resize-none"></textarea>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Pull request</label>
+          <input formControlName="pullRequestUrl" type="text" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none" />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Commit</label>
+          <input formControlName="commitId" type="text" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none" />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Riesgo del cambio</label>
+          <select formControlName="idRiesgoCambio" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none cursor-pointer">
+            <option [ngValue]="null" class="bg-[#0d0d12]">Sin definir</option>
+            @for (riesgo of riesgosCambio(); track trackParametro($index, riesgo)) {
+              <option [ngValue]="riesgo.idParametro" class="bg-[#0d0d12]">{{ riesgo.nombre }}</option>
+            }
+          </select>
+        </div>
+        <label class="flex items-center gap-2 mt-5 text-xs text-slate-300">
+          <input formControlName="requiereDespliegue" type="checkbox" class="accent-blue-500" />
+          Requiere despliegue
+        </label>
+        <div class="flex flex-col gap-1.5 md:col-span-2">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Observaciones tecnicas</label>
+          <textarea formControlName="observacionesTecnicas" rows="2" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-3 text-slate-200 focus:outline-none resize-none"></textarea>
+        </div>
+        <div class="flex flex-col gap-1.5 md:col-span-2">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Comentario</label>
+          <textarea formControlName="comentario" rows="2" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-3 text-slate-200 focus:outline-none resize-none"></textarea>
+        </div>
+      </form>
+    }
+
+    @if (activeStep === 'validacion') {
+      <form [formGroup]="validacionForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Resultado</label>
+          <select formControlName="idResultadoValidacion" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none cursor-pointer">
+            <option [ngValue]="null" class="bg-[#0d0d12]">Sin definir</option>
+            @for (resultado of resultadosValidacion(); track trackParametro($index, resultado)) {
+              <option [ngValue]="resultado.idParametro" class="bg-[#0d0d12]">{{ resultado.nombre }}</option>
+            }
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Ambiente validado</label>
+          <select formControlName="idAmbienteValidado" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none cursor-pointer">
+            <option [ngValue]="null" class="bg-[#0d0d12]">Sin definir</option>
+            @for (ambiente of ambientes(); track trackParametro($index, ambiente)) {
+              <option [ngValue]="ambiente.idParametro" class="bg-[#0d0d12]">{{ ambiente.nombre }}</option>
+            }
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5 md:col-span-2">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Observaciones QA</label>
+          <textarea formControlName="observacionesQa" rows="4" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-3 text-slate-200 focus:outline-none resize-none"></textarea>
+        </div>
+        <div class="flex flex-col gap-1.5 md:col-span-2">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Comentario</label>
+          <textarea formControlName="comentario" rows="2" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-3 text-slate-200 focus:outline-none resize-none"></textarea>
+        </div>
+      </form>
+    }
+
+    @if (activeStep === 'conocimiento') {
+      <form [formGroup]="conocimientoForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Categoria</label>
+          <select formControlName="idCategoriaConocimiento" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none cursor-pointer">
+            <option [ngValue]="null" class="bg-[#0d0d12]">Sin definir</option>
+            @for (categoria of categoriasConocimiento(); track trackParametro($index, categoria)) {
+              <option [ngValue]="categoria.idParametro" class="bg-[#0d0d12]">{{ categoria.nombre }}</option>
+            }
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Estado articulo</label>
+          <select formControlName="idEstadoArticuloConocimiento" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none cursor-pointer">
+            <option [ngValue]="null" class="bg-[#0d0d12]">Sin definir</option>
+            @for (estadoArticulo of estadosArticuloConocimiento(); track trackParametro($index, estadoArticulo)) {
+              <option [ngValue]="estadoArticulo.idParametro" class="bg-[#0d0d12]">{{ estadoArticulo.nombre }}</option>
+            }
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5 md:col-span-2">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Resumen de conocimiento</label>
+          <textarea formControlName="resumenConocimiento" rows="3" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-3 text-slate-200 focus:outline-none resize-none"></textarea>
+        </div>
+        <div class="flex flex-col gap-1.5 md:col-span-2">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Recomendacion futura</label>
+          <textarea formControlName="recomendacionFutura" rows="2" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-3 text-slate-200 focus:outline-none resize-none"></textarea>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Nivel reutilizacion</label>
+          <select formControlName="idNivelReutilizacion" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none cursor-pointer">
+            <option [ngValue]="null" class="bg-[#0d0d12]">Sin definir</option>
+            @for (nivel of nivelesReutilizacion(); track trackParametro($index, nivel)) {
+              <option [ngValue]="nivel.idParametro" class="bg-[#0d0d12]">{{ nivel.nombre }}</option>
+            }
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Tags</label>
+          <input formControlName="tags" type="text" placeholder="api, datos, qa" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none" />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Casos relacionados</label>
+          <input formControlName="casosRelacionados" type="text" placeholder="CASE-001, CASE-002" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none" />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-slate-500 font-bold uppercase text-[9px]">Comentario</label>
+          <input formControlName="comentario" type="text" class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none" />
+        </div>
+      </form>
+    }
+  </div>
+
+  <div class="flex justify-end border-t border-white/5 pt-3">
+    <button
+      type="button"
+      (click)="onCancel.emit()"
+      class="px-4 py-2 font-bold font-mono text-slate-500 hover:text-slate-300 transition-colors cursor-pointer">
+      CERRAR
+    </button>
+  </div>
+</section>

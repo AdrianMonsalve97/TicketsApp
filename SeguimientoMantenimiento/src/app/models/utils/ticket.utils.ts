@@ -5,5 +5,5 @@ import { Ticket } from '../interfaces/ticket.model';
  */
 export function tieneFugaInformacion(ticket: Ticket | null | any): boolean {
   if (!ticket) return false;
-  return !ticket.historiaUsuario || ticket.historiaUsuario.trim() === '';
+  return !(ticket.nombreHu ?? ticket.historiaUsuario)?.trim();
 }

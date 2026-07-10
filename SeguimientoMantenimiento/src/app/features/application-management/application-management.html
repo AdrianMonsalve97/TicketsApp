@@ -1,0 +1,114 @@
+<div class="min-h-screen text-slate-200 p-6 flex flex-col gap-6">
+  <header class="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+    <div>
+      <span class="text-[10px] uppercase font-bold tracking-wider text-blue-300">Configuracion tecnica</span>
+      <h1 class="text-2xl font-bold text-white tracking-tight mt-1">Aplicaciones</h1>
+      <p class="text-xs text-slate-400 mt-1">
+        Relaciona aplicaciones con los repositorios que se deben revisar durante el diagnostico.
+      </p>
+    </div>
+  </header>
+
+  @if (!puedeAdministrar()) {
+    <section class="crypto-glass-card rounded-2xl p-8 border border-white/5 text-center max-w-xl mx-auto">
+      <i class="pi pi-lock text-amber-400 text-xl"></i>
+      <h2 class="text-sm font-bold uppercase mt-3">Acceso restringido</h2>
+      <p class="text-xs text-slate-400 mt-1">Solo Planner o Lider Tecnico pueden administrar aplicaciones.</p>
+    </section>
+  } @else {
+    <section class="grid grid-cols-1 xl:grid-cols-[360px_1fr] gap-5">
+      <aside class="flex flex-col gap-4">
+        <article class="crypto-glass-card rounded-2xl p-5 border border-white/5">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-4">Nueva aplicacion</h2>
+          <div class="flex flex-col gap-3">
+            <label class="flex flex-col gap-1.5">
+              <span class="text-slate-500 font-bold uppercase text-[9px]">Nombre</span>
+              <input
+                type="text"
+                [(ngModel)]="form.nombre"
+                class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-2.5 text-slate-200 focus:outline-none"
+                placeholder="Ej: ALM, Facturacion, Integraciones"
+              />
+            </label>
+            <label class="flex flex-col gap-1.5">
+              <span class="text-slate-500 font-bold uppercase text-[9px]">Descripcion</span>
+              <textarea
+                [(ngModel)]="form.descripcion"
+                rows="3"
+                class="w-full bg-[#0d0d12] border border-white/10 text-xs rounded-xl p-3 text-slate-200 focus:outline-none resize-none"
+              ></textarea>
+            </label>
+            <button
+              type="button"
+              (click)="crearAplicativo()"
+              [disabled]="isLoading()"
+              class="px-4 py-2 font-bold font-mono bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl shadow-lg transition-all cursor-pointer disabled:opacity-50">
+              CREAR APLICACION
+            </button>
+          </div>
+        </article>
+
+        <article class="crypto-glass-card rounded-2xl p-5 border border-white/5">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-4">Aplicaciones registradas</h2>
+          <div class="flex flex-col gap-2 max-h-[520px] overflow-y-auto pr-1">
+            @for (aplicativo of aplicativos(); track aplicativo.idAplicativo) {
+              <button
+                type="button"
+                (click)="seleccionarAplicativo(aplicativo.idAplicativo)"
+                class="text-left rounded-xl border p-3 transition-all cursor-pointer"
+                [ngClass]="{
+                  'border-blue-400/40 bg-blue-500/10': selectedAplicativoId() === aplicativo.idAplicativo,
+                  'border-white/5 bg-white/[0.02] hover:bg-white/[0.05]': selectedAplicativoId() !== aplicativo.idAplicativo
+                }">
+                <strong class="block text-sm text-white">{{ aplicativo.nombre }}</strong>
+                <span class="block text-[10px] text-slate-500 mt-1">
+                  {{ repositoriosRelacionadosCount(aplicativo) }} repositorios relacionados
+                </span>
+              </button>
+            } @empty {
+              <p class="text-xs text-slate-500">No hay aplicaciones registradas.</p>
+            }
+          </div>
+        </article>
+      </aside>
+
+      <section class="crypto-glass-card rounded-2xl p-5 border border-white/5">
+        @if (selectedAplicativo(); as aplicativo) {
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
+            <div>
+              <span class="text-[10px] text-blue-300 font-bold uppercase">Aplicacion seleccionada</span>
+              <h2 class="text-xl font-bold text-white mt-1">{{ aplicativo.nombre }}</h2>
+              <p class="text-xs text-slate-400 mt-1">{{ aplicativo.descripcion || 'Sin descripcion.' }}</p>
+            </div>
+            <span class="text-[10px] font-mono border border-blue-400/20 text-blue-200 rounded px-2 py-1">
+              MAPEO TEMPORAL FRONT
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            @for (repositorio of repositorios(); track repositorio.idRepositorio) {
+              <label class="rounded-xl border border-white/5 bg-black/20 p-4 flex items-start gap-3 cursor-pointer hover:bg-white/[0.04] transition-colors">
+                <input
+                  type="checkbox"
+                  class="mt-1 accent-blue-500"
+                  [checked]="isRepositorioRelacionado(repositorio.idRepositorio)"
+                  (change)="toggleRepositorio(repositorio.idRepositorio, $any($event.target).checked)"
+                />
+                <span class="min-w-0">
+                  <strong class="block text-sm text-slate-100 truncate">{{ repositorio.repositorio }}</strong>
+                  <span class="block text-[10px] text-slate-500 mt-1 break-words">{{ repositorio.link || repositorio.descripcion || 'Sin detalle.' }}</span>
+                </span>
+              </label>
+            } @empty {
+              <p class="text-xs text-slate-500">No hay repositorios disponibles.</p>
+            }
+          </div>
+        } @else {
+          <div class="min-h-[360px] flex items-center justify-center text-center text-xs text-slate-500">
+            Selecciona o crea una aplicacion para asociar repositorios.
+          </div>
+        }
+      </section>
+    </section>
+  }
+</div>

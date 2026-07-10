@@ -40,7 +40,8 @@ export interface ChartMetrics {
 
 export function calculateMetrics(data: Ticket[], usuarioFirmaId: string): ChartMetrics {
   const totalTickets = data.length;
-  const withoutHU = data.filter((t) => !t.historiaUsuario || t.historiaUsuario.trim() === '');
+  const tieneHu = (ticket: Ticket) => Boolean((ticket.nombreHu ?? ticket.historiaUsuario)?.trim());
+  const withoutHU = data.filter((t) => !tieneHu(t));
   const urgentesSinHU = withoutHU.filter((t) =>
     [
       TicketStatus.EN_ANALISIS,
@@ -56,7 +57,7 @@ export function calculateMetrics(data: Ticket[], usuarioFirmaId: string): ChartM
   ).length;
   const urgentesConHU = data.filter(
     (t) =>
-      !!t.historiaUsuario?.trim() &&
+      tieneHu(t) &&
       [
         TicketStatus.EN_ANALISIS,
         TicketStatus.EN_PROCESO,

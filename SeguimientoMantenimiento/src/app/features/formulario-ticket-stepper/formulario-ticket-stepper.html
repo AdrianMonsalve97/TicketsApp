@@ -5,9 +5,9 @@
   </app-dynamic-stepper>
 
   <ng-template #pasoDefinicion>
-    <form [formGroup]="formPasoUno" class="flex flex-col gap-4">
+    <form [formGroup]="formDefinicion" class="flex flex-col gap-4">
       <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-semibold text-slate-300">Título del requerimiento</label>
+        <label class="text-xs font-semibold text-slate-300">Titulo del requerimiento</label>
         <input
           type="text"
           formControlName="titulo"
@@ -16,20 +16,20 @@
       </div>
 
       <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-semibold text-slate-300">Descripción técnica</label>
+        <label class="text-xs font-semibold text-slate-300">Descripcion inicial</label>
         <textarea
           formControlName="descripcion"
           rows="4"
-          placeholder="Detalles del comportamiento esperado"
+          placeholder="Describe el problema recibido sin diagnostico tecnico todavia"
           class="w-full p-3 bg-black/40 border border-white/10 text-xs text-white rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors resize-none"></textarea>
       </div>
     </form>
   </ng-template>
 
-  <ng-template #pasoAsignacion>
-    <form [formGroup]="formPasoDos" class="flex flex-col gap-4">
+  <ng-template #pasoCaso>
+    <form [formGroup]="formCaso" class="flex flex-col gap-4">
       <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-semibold text-slate-300">Código de caso</label>
+        <label class="text-xs font-semibold text-slate-300">Codigo de caso</label>
         <input
           type="text"
           formControlName="codigoCaso"
@@ -37,30 +37,115 @@
           class="w-full p-3 bg-black/40 border border-white/10 text-xs text-white rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors" />
       </div>
 
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-semibold text-slate-300">Origen</label>
+        <select
+          formControlName="origenTicket"
+          [disabled]="cargandoCatalogos() || origenesTicket().length === 0"
+          class="w-full p-3 bg-black/40 border border-white/10 text-xs text-slate-300 rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed">
+          @if (cargandoCatalogos()) {
+            <option [ngValue]="null" class="bg-[#0d0d12]">Sincronizando parametros...</option>
+          } @else {
+            @for (origen of origenesTicket(); track trackParametro($index, origen)) {
+              <option [ngValue]="obtenerValorBackendOrigen(origen)" class="bg-[#0d0d12]">
+                {{ origen.nombre }}
+              </option>
+            }
+          }
+        </select>
+      </div>
+    </form>
+  </ng-template>
+
+  <ng-template #pasoClasificacion>
+    <form [formGroup]="formClasificacion" class="flex flex-col gap-4">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-semibold text-slate-300">Origen</label>
-          <select
-            formControlName="origenTicket"
-            class="w-full p-3 bg-black/40 border border-white/10 text-xs text-slate-300 rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors cursor-pointer">
-            <option [ngValue]="1" class="bg-[#0d0d12]">SAIA</option>
-            <option [ngValue]="2" class="bg-[#0d0d12]">GLPI</option>
+          <label class="text-xs font-semibold text-slate-300">Tipo de caso</label>
+          <select formControlName="idTipoCaso" class="w-full p-3 bg-black/40 border border-white/10 text-xs text-slate-300 rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors cursor-pointer">
+            @for (tipo of tiposCaso(); track trackParametro($index, tipo)) {
+              <option [ngValue]="tipo.idParametro" class="bg-[#0d0d12]">{{ tipo.nombre }}</option>
+            }
           </select>
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-semibold text-slate-300">Usuario asignado</label>
-          <select
-            formControlName="idUsuarioAsignado"
-            [disabled]="!puedeAsignarUsuarios()"
-            class="w-full p-3 bg-black/40 border border-white/10 text-xs text-slate-300 rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed">
-            @for (usuario of usuariosFiltrados(); track trackUser($index, usuario)) {
-              <option [ngValue]="+usuario.idUsuario" class="bg-[#0d0d12] text-slate-300">
-                {{ usuario.nombres }} {{ usuario.apellidos }} - {{ usuario.nombreUsuario }}
-              </option>
+          <label class="text-xs font-semibold text-slate-300">Prioridad</label>
+          <select formControlName="idPrioridad" class="w-full p-3 bg-black/40 border border-white/10 text-xs text-slate-300 rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors cursor-pointer">
+            @for (prioridad of prioridades(); track trackParametro($index, prioridad)) {
+              <option [ngValue]="prioridad.idParametro" class="bg-[#0d0d12]">{{ prioridad.nombre }}</option>
             }
           </select>
         </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-semibold text-slate-300">Impacto</label>
+          <select formControlName="idImpacto" class="w-full p-3 bg-black/40 border border-white/10 text-xs text-slate-300 rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors cursor-pointer">
+            <option [ngValue]="null" class="bg-[#0d0d12]">Sin definir</option>
+            @for (impacto of impactos(); track trackParametro($index, impacto)) {
+              <option [ngValue]="impacto.idParametro" class="bg-[#0d0d12]">{{ impacto.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-semibold text-slate-300">Ambiente reportado</label>
+          <select formControlName="idAmbienteReportado" class="w-full p-3 bg-black/40 border border-white/10 text-xs text-slate-300 rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors cursor-pointer">
+            <option [ngValue]="null" class="bg-[#0d0d12]">Sin definir</option>
+            @for (ambiente of ambientes(); track trackParametro($index, ambiente)) {
+              <option [ngValue]="ambiente.idParametro" class="bg-[#0d0d12]">{{ ambiente.nombre }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-semibold text-slate-300">Historia de usuario</label>
+          <select formControlName="idEstadoHistoriaUsuario" class="w-full p-3 bg-black/40 border border-white/10 text-xs text-slate-300 rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors cursor-pointer">
+            @for (estadoHu of estadosHistoriaUsuario(); track trackParametro($index, estadoHu)) {
+              <option [ngValue]="estadoHu.idParametro" class="bg-[#0d0d12]">{{ estadoHu.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-semibold text-slate-300">Codigo HU o referencia</label>
+          <input
+            type="text"
+            formControlName="historiaUsuario"
+            placeholder="Opcional"
+            class="w-full p-3 bg-black/40 border border-white/10 text-xs text-white rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors" />
+        </div>
+      </div>
+    </form>
+  </ng-template>
+
+  <ng-template #pasoAsignacion>
+    <form [formGroup]="formAsignacion" class="flex flex-col gap-4">
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-semibold text-slate-300">Usuario asignado</label>
+        <select
+          formControlName="idUsuarioAsignado"
+          [disabled]="!puedeAsignarUsuarios()"
+          class="w-full p-3 bg-black/40 border border-white/10 text-xs text-slate-300 rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed">
+          @for (usuario of usuariosFiltrados(); track trackUser($index, usuario)) {
+            <option [ngValue]="+usuario.idUsuario" class="bg-[#0d0d12] text-slate-300">
+              {{ usuario.nombres }} {{ usuario.apellidos }} - {{ usuario.nombreUsuario }}
+            </option>
+          }
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-semibold text-slate-300">Comentario inicial</label>
+        <textarea
+          formControlName="comentarioInicial"
+          rows="3"
+          placeholder="Contexto adicional opcional para auditoria"
+          class="w-full p-3 bg-black/40 border border-white/10 text-xs text-white rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors resize-none"></textarea>
       </div>
     </form>
   </ng-template>

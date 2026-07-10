@@ -1,0 +1,88 @@
+<section class="knowledge-map-shell">
+  <div class="knowledge-map-header">
+    <div>
+      <span class="section-kicker">Mapa de conocimiento</span>
+      <h3>{{ mode() === 'mind' ? 'Cadena causal del ticket' : 'Ruta tecnica del ticket' }}</h3>
+      <p class="map-purpose">
+        {{ mode() === 'mind'
+          ? 'Lee de izquierda a derecha: problema, evidencia, causa, solucion, validacion y aprendizaje.'
+          : 'Sigue las fases operativas del ticket desde la recepcion hasta el conocimiento reutilizable.' }}
+      </p>
+    </div>
+
+    <div class="mode-switch" role="tablist" aria-label="Modo de mapa">
+      <button type="button" [class.active]="mode() === 'mind'" (click)="setMode('mind')">
+        Mapa mental
+      </button>
+      <button type="button" [class.active]="mode() === 'flow'" (click)="setMode('flow')">
+        Flujo tecnico
+      </button>
+    </div>
+  </div>
+
+  <div class="knowledge-map-canvas" [class.flow-mode]="mode() === 'flow'">
+    @if (mode() === 'mind') {
+      <svg class="knowledge-map-svg" viewBox="0 0 1500 620" preserveAspectRatio="xMinYMin meet">
+        <g class="map-lanes">
+          <rect x="30" y="64" width="330" height="500" rx="18"></rect>
+          <rect x="397" y="64" width="330" height="500" rx="18"></rect>
+          <rect x="764" y="64" width="330" height="500" rx="18"></rect>
+          <rect x="1131" y="64" width="330" height="500" rx="18"></rect>
+          <text x="72" y="108">Entrada</text>
+          <text x="437" y="108">Diagnostico</text>
+          <text x="804" y="108">Resolucion</text>
+          <text x="1170" y="108">Aprendizaje</text>
+        </g>
+
+        @for (edge of mindMap().edges; track trackEdge($index)) {
+          <path class="map-edge" [attr.d]="edgePath(edge.source, edge.target)"></path>
+          @if (edge.label) {
+            <text
+              class="edge-label"
+              [attr.x]="edgeLabelX(edge.source, edge.target)"
+              [attr.y]="edgeLabelY(edge.source, edge.target)">
+              {{ edge.label }}
+            </text>
+          }
+        }
+
+        @for (node of mindMap().nodes; track trackNode($index, node)) {
+          <foreignObject
+            class="map-node"
+            [attr.x]="node.x"
+            [attr.y]="node.y"
+            [attr.width]="nodeWidth"
+            [attr.height]="nodeHeight">
+            <article xmlns="http://www.w3.org/1999/xhtml" class="knowledge-node" [ngClass]="nodeClass(node)">
+              <div class="node-heading">
+                <span class="node-dot"></span>
+                <strong>{{ node.label }}</strong>
+              </div>
+              <p>{{ node.detail }}</p>
+              <span class="node-status">{{ statusLabel(node.status) }}</span>
+            </article>
+          </foreignObject>
+        }
+      </svg>
+    } @else {
+      <div class="flow-board" aria-label="Flujo tecnico del ticket">
+        @for (step of flowSteps(); track trackNode($index, step.node)) {
+          <article class="flow-step" [ngClass]="nodeClass(step.node)">
+            <div class="flow-index">{{ $index + 1 }}</div>
+            <div class="flow-content">
+              <span class="flow-status">{{ statusLabel(step.node.status) }}</span>
+              <strong>{{ step.node.label }}</strong>
+              <p>{{ step.node.detail }}</p>
+            </div>
+
+            @if (step.connector) {
+              <div class="flow-connector">
+                <span>{{ step.connector }}</span>
+              </div>
+            }
+          </article>
+        }
+      </div>
+    }
+  </div>
+</section>

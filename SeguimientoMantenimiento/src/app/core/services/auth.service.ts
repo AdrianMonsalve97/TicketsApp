@@ -7,6 +7,8 @@ import { API_BASE_URL } from './api.config';
 import { ApiResponse } from '../../models/interfaces/api-response.model';
 import { LoginResponseDto } from '../../models/interfaces/auth-api.model';
 import { backendRolToRole } from '../../models/utils/role.utils';
+import { CatalogoSyncService } from './catalogo-sync.service';
+import { TicketWorkflowMemoryStoreService } from '../state/ticket-workflow-memory-store.service';
 
 const TOKEN_KEY = 'ticketshex_token';
 const TOKEN_EXPIRATION_KEY = 'ticketshex_token_expiration';
@@ -15,6 +17,8 @@ const USER_KEY = 'ticketshex_user';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
+  private catalogoSyncService = inject(CatalogoSyncService);
+  private ticketWorkflowMemoryStore = inject(TicketWorkflowMemoryStoreService);
   private _currentUser = signal<User | null>(this.getStoredUser());
 
   public currentUser = this._currentUser.asReadonly();
@@ -41,16 +45,17 @@ export class AuthService {
     localStorage.removeItem(TOKEN_EXPIRATION_KEY);
     localStorage.removeItem(USER_KEY);
     this._currentUser.set(null);
+    this.catalogoSyncService.limpiar();
+    this.ticketWorkflowMemoryStore.limpiar();
 
     if (token) {
       this.http.post<ApiResponse<boolean>>(`${API_BASE_URL}/auth/logout`, {}, { headers: { Authorization: `Bearer ${token}` } }).subscribe();
     }
   }
 
-  changePassword(nombreUsuario: string, contrasenaActual: string, nuevaContrasena: string) {
+  changePassword(_nombreUsuario: string, contrasenaActual: string, nuevaContrasena: string) {
     return this.http
       .post<ApiResponse<boolean>>(`${API_BASE_URL}/auth/cambiar-contrasena`, {
-        nombreUsuario,
         contrasenaActual,
         nuevaContrasena,
       })
@@ -111,8 +116,26 @@ export class AuthService {
     const stored = JSON.parse(rawUser) as User;
     return {
       ...stored,
-      avatarUrl: '',
+      avatarUrl: this.toAvatarUrl(stored.imagenPerfilBase64) || stored.avatarUrl || '',
     };
+  }
+
+  marcarContrasenaActualizada(): void {
+    this._currentUser.update((user) => {
+      if (!user) return null;
+      const updated = { ...user, debeCambiarContrasena: false };
+      localStorage.setItem(USER_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }
+
+  actualizarUsuarioSesion(partialUser: Partial<User>): void {
+    this._currentUser.update((user) => {
+      if (!user) return null;
+      const updated = { ...user, ...partialUser };
+      localStorage.setItem(USER_KEY, JSON.stringify(updated));
+      return updated;
+    });
   }
 
   private getTokenWithoutExpirationCheck(): string | null {
@@ -130,9 +153,14 @@ export class AuthService {
       idArea: null,
       activo: true,
       password: '',
-      debeCambiarContrasena: false,
+      debeCambiarContrasena: Boolean(session.usuario.debeCambiarContrasena),
       avatarUrl: '',
     };
+  }
+
+  private toAvatarUrl(value: string | null | undefined): string {
+    if (!value) return '';
+    return value.startsWith('data:') ? value : `data:image/png;base64,${value}`;
   }
 
   private extractRoleFromToken(token: string): string | null {

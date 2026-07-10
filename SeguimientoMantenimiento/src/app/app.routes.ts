@@ -6,18 +6,30 @@ import { ChangePasswordComponent } from './features/change-password/change-passw
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  {
-    path: '',
-    redirectTo: 'login',
-    pathMatch: 'full',
-  },
+  
   {
     path: 'dashboard',
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
     canActivate: [authGuard],
   },
+  {
+    path: 'tickets/:id',
+    loadComponent: () => import('./features/ticket-detail/ticket-detail').then((m) => m.TicketDetailComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'applications',
+    loadComponent: () => import('./features/application-management/application-management').then((m) => m.ApplicationManagementComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: '*',
+    redirectTo: 'login',
+    pathMatch: 'full',
+  },
   { path: 'users', component: UserManagementComponent, canActivate: [authGuard] },
   { path: 'profile', component: UserProfile, canActivate: [authGuard] },
   { path: 'change-password', component: ChangePasswordComponent, canActivate: [authGuard] },
   { path: 'login', component: Login },
+
 ];

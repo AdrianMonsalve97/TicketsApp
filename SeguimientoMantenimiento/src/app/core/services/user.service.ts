@@ -31,7 +31,7 @@ export class UserService {
         apellidos: user.apellidos,
         rol: roleToBackendRol(user.rol),
         idArea: user.idArea ?? null,
-        contrasena: user.password,
+        imagenPerfilBase64: user.imagenPerfilBase64 ?? null,
       })
       .pipe(map(() => ({ ...user, idUsuario: String(idUsuario), activo: true, bloqueado: false, password: '' })));
   }
@@ -45,6 +45,7 @@ export class UserService {
         rol: roleToBackendRol(user.rol),
         idArea: user.idArea ?? null,
         activo: user.activo,
+        imagenPerfilBase64: user.imagenPerfilBase64 ?? null,
       })
       .pipe(map(() => ({ ...user, password: '' })));
   }
@@ -71,7 +72,13 @@ export class UserService {
       contrasenaExpiraEn: user.contrasenaExpiraEn ? new Date(user.contrasenaExpiraEn) : null,
       idArea: user.idArea ? Number(user.idArea) : null,
       password: '',
-      avatarUrl: '',
+      imagenPerfilBase64: user.imagenPerfilBase64 ?? null,
+      avatarUrl: this.toAvatarUrl(user.imagenPerfilBase64),
     };
+  }
+
+  private toAvatarUrl(value: string | null | undefined): string {
+    if (!value) return '';
+    return value.startsWith('data:') ? value : `data:image/png;base64,${value}`;
   }
 }

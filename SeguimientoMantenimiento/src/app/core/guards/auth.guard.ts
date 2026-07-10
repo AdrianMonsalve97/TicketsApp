@@ -6,7 +6,13 @@ export const authGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  if (authService.currentUser()) {
+  const currentUser = authService.currentUser();
+  if (currentUser) {
+    if (currentUser.debeCambiarContrasena && !state.url.startsWith('/change-password')) {
+      router.navigate(['/change-password']);
+      return false;
+    }
+
     return true;
   }
 

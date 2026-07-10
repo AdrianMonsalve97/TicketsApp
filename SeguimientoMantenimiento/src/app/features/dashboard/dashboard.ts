@@ -10,16 +10,24 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { TicketStatus } from '../../models/enums/ticket-status';
 import { Ticket } from '../../models/interfaces/ticket.model';
 import { DataTableComponent } from '../../shared/organisms/data-table/data-table';
 import { Modal } from '../../shared/molecules/modal/modal';
 import { AnalyticsChartsComponent } from '../../shared/molecules/analytics-charts/analytics-charts';
 import { TicketService } from '../../core/services/ticket.service';
-import { ActualizarTicketRequestBody, CrearTicketRequestBody } from '../../models/interfaces/ticket-api.model';
+import { RepositorioRamaService } from '../../core/services/repositorio-rama';
+import { AplicativoService } from '../../core/services/aplicativo.service';
+import { ActualizarTicketRequestBody } from '../../models/interfaces/ticket-api.model';
 import { ticketStatusToBackend } from '../../models/interfaces/ticket-api.model';
 import { UiGlobalService } from '../../core/services/ui-global';
 import { FormularioTicketStepperComponent } from '../formulario-ticket-stepper/formulario-ticket-stepper';
+import {
+  ActualizarTicketStepSave,
+  ActualizarTicketStepperComponent,
+} from '../actualizar-ticket-stepper/actualizar-ticket-stepper';
+import { TicketKnowledgeMapComponent } from '../../shared/molecules/ticket-knowledge-map/ticket-knowledge-map';
 
 import { StatusColors } from '../../models/constants/status-colors';
 
@@ -35,6 +43,15 @@ import {
   roleToDashboardRole,
 } from '../../models/utils/role.utils';
 import { Roles } from '../../models/enums/roles';
+import {
+  ActualizarTicketMemoria,
+  CrearTicketFlowPayload,
+  TicketWorkflowMemoryRecord,
+} from '../../models/interfaces/ticket-workflow.model';
+import { TicketWorkflowMemoryStoreService } from '../../core/state/ticket-workflow-memory-store.service';
+import { ToastService } from '../../core/services/toast.service';
+import { CatalogoStoreService } from '../../core/state/catalogo-store.service';
+import { TicketCatalogoKey } from '../../models/interfaces/catalogo.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -44,6 +61,8 @@ import { Roles } from '../../models/enums/roles';
     DataTableComponent,
     Modal,
     FormularioTicketStepperComponent,
+    ActualizarTicketStepperComponent,
+    TicketKnowledgeMapComponent,
     AnalyticsChartsComponent,
   ],
   templateUrl: './dashboard.html',
@@ -51,9 +70,15 @@ import { Roles } from '../../models/enums/roles';
 })
 export class Dashboard implements OnInit, AfterViewInit {
   private ticketService = inject(TicketService);
+  private repositorioRamaService = inject(RepositorioRamaService);
+  private aplicativoService = inject(AplicativoService);
   private userService = inject(UserService);
   public uiService = inject(UiGlobalService);
   private authService = inject(AuthService);
+  private ticketWorkflowMemoryStore = inject(TicketWorkflowMemoryStoreService);
+  private toastService = inject(ToastService);
+  private catalogoStore = inject(CatalogoStoreService);
+  private router = inject(Router);
 
   tableContainer = viewChild<ElementRef>('tableContainer');
 
@@ -142,6 +167,13 @@ export class Dashboard implements OnInit, AfterViewInit {
     return ticket.idUsuarioAsignado === this.usuarioFirmaIdNumero();
   }
 
+  public puedeEditarDiagnosticoTicket(ticket: Ticket | null): boolean {
+    if (!ticket) return false;
+    const role = this.authService.currentRole();
+    const esAsignado = Number(ticket.idUsuarioAsignado) === this.usuarioFirmaIdNumero();
+    return role === Roles.Desarrollador && esAsignado;
+  }
+
   public obtenerNombreUsuarioAsignado(ticket: Ticket | null): string {
     if (!ticket || !ticket.idUsuarioAsignado) return 'Sin asignar';
     return ticket.desarrolladorAsignadoNombre || this.obtenerNombreUsuarioPorId(ticket.idUsuarioAsignado);
@@ -205,29 +237,43 @@ export class Dashboard implements OnInit, AfterViewInit {
   });
 
   public abrirDetalleTicket(ticket: Ticket): void {
-    this.ticketSeleccionado = ticket;
-    this.modalDetalleAbierto = true;
+    this.router.navigate(['/tickets', ticket.idTicket]);
   }
 
   public abrirEdicionTicket(ticket: Ticket): void {
-    this.ticketSeleccionado = JSON.parse(JSON.stringify(ticket));
-    this.ticketOriginalEdicion = JSON.parse(JSON.stringify(ticket));
-    this.modalEditarAbierto = true;
+    this.router.navigate(['/tickets', ticket.idTicket], { queryParams: { editar: '1' } });
   }
 
-  public procesarTicketCreado(nuevoTicket: CrearTicketRequestBody): void {
-    if (!this.puedeAsignarUsuarios() && Number(nuevoTicket.idUsuarioAsignado) !== Number(this.usuarioFirmaId())) {
-      nuevoTicket = {
-        ...nuevoTicket,
-        idUsuarioAsignado: Number(this.usuarioFirmaId()),
+  public procesarTicketCreado(payload: CrearTicketFlowPayload): void {
+    if (!this.puedeAsignarUsuarios() && Number(payload.backendBody.idUsuarioAsignado) !== Number(this.usuarioFirmaId())) {
+      payload = {
+        backendBody: {
+          ...payload.backendBody,
+          idUsuarioAsignado: Number(this.usuarioFirmaId()),
+        },
+        memoria: {
+          ...payload.memoria,
+          idUsuarioAsignado: Number(this.usuarioFirmaId()),
+        },
       };
     }
 
-    if (nuevoTicket) {
-      this.ticketService.createTicket(nuevoTicket).subscribe({
+    if (payload.backendBody) {
+      this.ticketService.createTicket(payload.backendBody).subscribe({
         next: (created) => {
-          this.tickets.update((lista) => [created, ...lista]);
+          this.ticketWorkflowMemoryStore.guardarCreacionBackend(created.idTicket, payload);
+          this.tickets.update((lista) => [this.enriquecerTicketsConUsuarios([created])[0], ...lista]);
           this.modalAbierto = false;
+        },
+        error: () => {
+          const localTicket = this.ticketWorkflowMemoryStore.crearTicketLocal(payload);
+          this.tickets.update((lista) => [this.enriquecerTicketsConUsuarios([localTicket])[0], ...lista]);
+          this.modalAbierto = false;
+          this.toastService.warning(
+            `ticket-local-${localTicket.idTicket}`,
+            'Ticket guardado en memoria',
+            'El backend no recibio este nuevo flujo. Se conservara solo durante la sesion actual.',
+          );
         },
       });
     }
@@ -237,12 +283,14 @@ export class Dashboard implements OnInit, AfterViewInit {
     if (this.ticketSeleccionado && this.ticketOriginalEdicion) {
       const body = this.construirBodyActualizacion(this.ticketSeleccionado, this.ticketOriginalEdicion);
       if (!Object.keys(body).length) {
+        this.guardarActualizacionEnMemoria(this.ticketSeleccionado);
         this.modalEditarAbierto = false;
         this.ticketSeleccionado = null;
         this.ticketOriginalEdicion = null;
         return;
       }
 
+      this.guardarActualizacionEnMemoria(this.ticketSeleccionado);
       this.ticketService
         .updateTicket(this.ticketSeleccionado.idTicket, body, this.ticketSeleccionado)
         .subscribe({
@@ -255,8 +303,83 @@ export class Dashboard implements OnInit, AfterViewInit {
           this.ticketOriginalEdicion = null;
           this.refrescarTickets();
         },
+        error: () => {
+          const ticketActualizado = {
+            ...this.ticketSeleccionado!,
+            fechaUltimaActualizacion: new Date(),
+          };
+          this.tickets.update((lista) =>
+            lista.map((t) => (t.idTicket === ticketActualizado.idTicket ? ticketActualizado : t)),
+          );
+          this.modalEditarAbierto = false;
+          this.ticketSeleccionado = null;
+          this.ticketOriginalEdicion = null;
+          this.toastService.warning(
+            `ticket-update-local-${ticketActualizado.idTicket}`,
+            'Actualizacion guardada en memoria',
+            'El backend no recibio este nuevo flujo. El cambio vive solo en esta sesion.',
+          );
+        },
       });
     }
+  }
+
+  public procesarActualizacionTicket(payload: ActualizarTicketStepSave): void {
+    this.ticketWorkflowMemoryStore.guardarActualizacion(payload.updatedTicket, payload.memoria);
+
+    const debeEnviarBackend =
+      (
+        Object.keys(payload.backendBody).length > 0 ||
+        (this.puedeReasignarTickets() && Boolean(payload.aplicativoAsignado || payload.ramaAsignada))
+      ) &&
+      !payload.updatedTicket.idTicket.startsWith('local-');
+
+    if (!debeEnviarBackend) {
+      this.aplicarTicketActualizado(payload.updatedTicket);
+      this.toastService.success(
+        `ticket-memory-step-${payload.updatedTicket.idTicket}-${payload.paso}`,
+        'Seccion guardada en memoria',
+        'Los datos se conservaran durante esta sesion.',
+      );
+      return;
+    }
+
+    if (!Object.keys(payload.backendBody).length) {
+      this.aplicarTicketActualizado(payload.updatedTicket);
+      this.asignarDependenciasTicket(payload);
+      return;
+    }
+
+    this.ticketService
+      .updateTicket(payload.updatedTicket.idTicket, payload.backendBody, payload.updatedTicket)
+      .subscribe({
+        next: (updated) => {
+          this.aplicarTicketActualizado(updated);
+          this.asignarDependenciasTicket(payload);
+          this.toastService.success(
+            `ticket-backend-step-${updated.idTicket}-${payload.paso}`,
+            'Seccion actualizada',
+            'El backend recibio los campos compatibles y la memoria guardo el resto.',
+          );
+        },
+        error: () => {
+          this.aplicarTicketActualizado(payload.updatedTicket);
+          this.toastService.warning(
+            `ticket-update-local-${payload.updatedTicket.idTicket}-${payload.paso}`,
+            'Seccion guardada en memoria',
+            'El backend no recibio esta actualizacion. El cambio vive solo en esta sesion.',
+          );
+        },
+      });
+  }
+
+  public obtenerMemoriaTicket(ticket: Ticket | null): TicketWorkflowMemoryRecord | null {
+    return this.ticketWorkflowMemoryStore.obtener(ticket?.idTicket);
+  }
+
+  public nombreParametro(key: TicketCatalogoKey, idParametro: number | null | undefined): string {
+    if (!idParametro) return 'Sin definir';
+    return this.catalogoStore.findById(key, idParametro)?.nombre ?? 'Sin definir';
   }
 
   private refrescarTickets(): void {
@@ -271,12 +394,71 @@ export class Dashboard implements OnInit, AfterViewInit {
     });
   }
 
+  private aplicarTicketActualizado(ticket: Ticket): void {
+    const enriquecido = this.enriquecerTicketsConUsuarios([ticket])[0];
+    this.tickets.update((lista) =>
+      lista.map((item) => (item.idTicket === enriquecido.idTicket ? enriquecido : item)),
+    );
+    this.ticketSeleccionado = { ...enriquecido };
+  }
+
+  private asignarDependenciasTicket(payload: ActualizarTicketStepSave): void {
+    if (!this.puedeReasignarTickets() || payload.updatedTicket.idTicket.startsWith('local-')) return;
+
+    if (payload.aplicativoAsignado) {
+      this.aplicativoService
+        .asignarAplicativoTicket(payload.updatedTicket.idTicket, payload.aplicativoAsignado.idAplicativo)
+        .subscribe({
+          next: () => {
+            this.toastService.success(
+              `dashboard-app-${payload.updatedTicket.idTicket}-${payload.aplicativoAsignado?.idAplicativo}`,
+              'Aplicacion asociada',
+              'La aplicacion quedo vinculada al ticket.',
+            );
+          },
+          error: () => {
+            this.toastService.warning(
+              `dashboard-app-error-${payload.updatedTicket.idTicket}-${payload.aplicativoAsignado?.idAplicativo}`,
+              'No se asocio la aplicacion',
+              'Puede que ya este vinculada al ticket.',
+            );
+          },
+        });
+    }
+
+    if (!payload.ramaAsignada) return;
+
+    this.repositorioRamaService
+      .asignarRamaTicket(
+        payload.updatedTicket.idTicket,
+        payload.ramaAsignada.idRepositorio,
+        payload.ramaAsignada.idRama,
+      )
+      .subscribe({
+        next: () => {
+          this.toastService.success(
+            `dashboard-rama-${payload.updatedTicket.idTicket}-${payload.ramaAsignada?.idRama}`,
+            'Rama asociada',
+            'El repositorio quedo vinculado al ticket.',
+          );
+        },
+        error: () => {
+          this.toastService.warning(
+            `dashboard-rama-error-${payload.updatedTicket.idTicket}-${payload.ramaAsignada?.idRama}`,
+            'No se asocio la rama',
+            'Revisa que el ticket sea de desarrollo y que la rama no este duplicada.',
+          );
+        },
+      });
+  }
+
   private enriquecerTicketsConUsuarios(tickets: Ticket[]): Ticket[] {
     const usuariosPorId = new Map(
       this.usuariosAsignables().map((usuario) => [Number(usuario.idUsuario), usuario]),
     );
 
-    return tickets.map((ticket) => {
+    return tickets.map((ticketOriginal) => {
+      const ticket = this.ticketWorkflowMemoryStore.aplicarMemoria(ticketOriginal);
       const usuario = usuariosPorId.get(ticket.idUsuarioAsignado);
       return {
         ...ticket,
@@ -332,8 +514,9 @@ export class Dashboard implements OnInit, AfterViewInit {
       body.idUsuarioAsignado = Number(ticket.idUsuarioAsignado);
     }
 
+    const role = this.authService.currentRole();
     const puedeEditarDiagnostico =
-      this.authService.currentRole() === Roles.Desarrollador &&
+      role === Roles.Desarrollador &&
       Number(original.idUsuarioAsignado) === this.usuarioFirmaIdNumero();
 
     if (puedeEditarDiagnostico && ticket.causaRaiz !== original.causaRaiz) {
@@ -349,5 +532,21 @@ export class Dashboard implements OnInit, AfterViewInit {
     }
 
     return body;
+  }
+
+  private guardarActualizacionEnMemoria(ticket: Ticket): void {
+    const actualizacion: ActualizarTicketMemoria = {
+      titulo: ticket.titulo,
+      descripcion: ticket.descripcion,
+      estadoActual: ticket.estadoActual,
+      idUsuarioAsignado: Number(ticket.idUsuarioAsignado),
+      causaRaiz: ticket.causaRaiz ?? null,
+      solucionPropuesta: ticket.solucionPropuesta ?? null,
+      comentario: ticket.carpetaMedios?.trim() || null,
+      fechaActualizacion: new Date().toISOString(),
+      paso: 'diagnostico',
+    };
+
+    this.ticketWorkflowMemoryStore.guardarActualizacion(ticket, actualizacion);
   }
 }

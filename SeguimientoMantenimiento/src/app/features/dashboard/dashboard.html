@@ -41,7 +41,7 @@
 
   </div>
 
-  <app-modal [visible]="modalAbierto" (close)="modalAbierto = false" [title]="'Crear Nuevo Requerimiento'" [size]="'md'">
+  <app-modal [visible]="modalAbierto" (close)="modalAbierto = false" [title]="'Crear Nuevo Requerimiento'" [size]="'lg'">
     @if (modalAbierto) { <app-formulario-ticket-stepper [usuariosAsignables]="usuariosAsignables()" [rolActual]="usuarioRol()" [puedeAsignarUsuarios]="puedeAsignarUsuarios()" [usuarioActualId]="usuarioFirmaId()" [usuarioActualNombre]="usuarioNombre()" (onFormComplete)="procesarTicketCreado($event)"></app-formulario-ticket-stepper> }
   </app-modal>
 
@@ -65,6 +65,48 @@
           <h3 class="text-base font-bold text-white font-sans tracking-tight mb-2">{{ ticketSeleccionado.titulo }}</h3>
           <p class="text-slate-400 leading-relaxed font-sans text-sm bg-black/20 p-3 rounded-lg border border-white/5">{{ ticketSeleccionado.descripcion || 'Sin especificaciones en el payload.' }}</p>
         </div>
+
+        <app-ticket-knowledge-map
+          [ticket]="ticketSeleccionado"
+          [memory]="obtenerMemoriaTicket(ticketSeleccionado)">
+        </app-ticket-knowledge-map>
+
+        @if (obtenerMemoriaTicket(ticketSeleccionado); as memoriaTicket) {
+          <div class="bg-blue-500/[0.04] border border-blue-400/10 rounded-xl p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <span class="text-blue-300 font-bold text-[10px] uppercase tracking-wider">Datos temporales del nuevo flujo</span>
+              <span class="text-[9px] font-mono px-2 py-0.5 rounded border border-blue-400/20 text-blue-200 uppercase">
+                {{ memoriaTicket.origen === 'memoria' ? 'Solo memoria' : 'Memoria + backend' }}
+              </span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="bg-black/20 border border-white/5 rounded-lg p-2.5">
+                <span class="block text-slate-500 text-[9px] uppercase font-bold">Tipo</span>
+                <span class="text-slate-200 font-sans text-xs">{{ nombreParametro('tiposCaso', memoriaTicket.creacion.idTipoCaso) }}</span>
+              </div>
+              <div class="bg-black/20 border border-white/5 rounded-lg p-2.5">
+                <span class="block text-slate-500 text-[9px] uppercase font-bold">Prioridad</span>
+                <span class="text-slate-200 font-sans text-xs">{{ nombreParametro('prioridades', memoriaTicket.creacion.idPrioridad) }}</span>
+              </div>
+              <div class="bg-black/20 border border-white/5 rounded-lg p-2.5">
+                <span class="block text-slate-500 text-[9px] uppercase font-bold">Impacto</span>
+                <span class="text-slate-200 font-sans text-xs">{{ nombreParametro('impactos', memoriaTicket.creacion.idImpacto) }}</span>
+              </div>
+              <div class="bg-black/20 border border-white/5 rounded-lg p-2.5">
+                <span class="block text-slate-500 text-[9px] uppercase font-bold">Ambiente</span>
+                <span class="text-slate-200 font-sans text-xs">{{ nombreParametro('ambientes', memoriaTicket.creacion.idAmbienteReportado) }}</span>
+              </div>
+              <div class="bg-black/20 border border-white/5 rounded-lg p-2.5">
+                <span class="block text-slate-500 text-[9px] uppercase font-bold">HU</span>
+                <span class="text-slate-200 font-sans text-xs">{{ nombreParametro('estadosHistoriaUsuario', memoriaTicket.creacion.idEstadoHistoriaUsuario) }}</span>
+              </div>
+              <div class="bg-black/20 border border-white/5 rounded-lg p-2.5">
+                <span class="block text-slate-500 text-[9px] uppercase font-bold">Actualizaciones memoria</span>
+                <span class="text-slate-200 font-sans text-xs">{{ memoriaTicket.actualizaciones.length }}</span>
+              </div>
+            </div>
+          </div>
+        }
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div class="bg-white/[0.01] border border-white/5 rounded-xl p-3 flex flex-col gap-0.5">
@@ -111,7 +153,27 @@
     }
   </app-modal>
 
-  <app-modal [visible]="modalEditarAbierto" (close)="modalEditarAbierto = false" [title]="'Actualizar Ticket'" [size]="'md'">
+  <app-modal [visible]="modalEditarAbierto" (close)="modalEditarAbierto = false" [title]="'Actualizar Ticket'" [size]="'xl'">
+    @if (modalEditarAbierto && ticketSeleccionado) {
+      <app-actualizar-ticket-stepper
+        [ticket]="ticketSeleccionado"
+        [usuariosAsignables]="usuariosAsignables()"
+        [estadosDisponibles]="estadosDisponibles"
+        [puedeEditarDefinicion]="puedeEditarDefinicionTicket()"
+        [puedeReasignar]="puedeReasignarTickets()"
+        [puedeCambiarEstado]="puedeCambiarEstado(ticketSeleccionado)"
+        [puedeEditarDiagnostico]="puedeEditarDiagnosticoTicket(ticketSeleccionado)"
+        [puedeSeleccionarDependencias]="true"
+        [puedePersistirDependencias]="puedeReasignarTickets()"
+        [puedePersistirRepositorios]="puedeReasignarTickets() && !!ticketSeleccionado.esDesarrollo"
+        [usuarioFirmaIdNumero]="usuarioFirmaIdNumero()"
+        [usuarioNombre]="usuarioNombre()"
+        [memoriaTicket]="obtenerMemoriaTicket(ticketSeleccionado)"
+        (onStepSave)="procesarActualizacionTicket($event)"
+        (onCancel)="modalEditarAbierto = false">
+      </app-actualizar-ticket-stepper>
+    }
+    @if (false && modalEditarAbierto && ticketSeleccionado) {
     @if (modalEditarAbierto && ticketSeleccionado) {
       <div class="p-5 flex flex-col gap-4 text-xs font-mono text-slate-300 max-w-2xl max-h-[85vh] overflow-y-auto custom-scrollbar">
         <div class="bg-white/5 border border-white/5 p-3 rounded-xl text-slate-200 font-sans font-bold text-sm flex justify-between items-center">
@@ -177,6 +239,7 @@
           <button (click)="guardarCambiosTicket()" class="px-4 py-2 font-bold font-mono bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl shadow-lg transition-all cursor-pointer">CONFIRMAR CAMBIOS</button>
         </div>
       </div>
+    }
     }
   </app-modal>
 

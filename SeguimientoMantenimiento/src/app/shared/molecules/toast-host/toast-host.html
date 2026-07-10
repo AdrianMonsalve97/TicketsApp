@@ -1,0 +1,45 @@
+@if (messages().length > 0) {
+  <section class="fixed right-4 top-4 z-[1400] flex w-[min(380px,calc(100vw-2rem))] flex-col gap-3">
+    @for (message of messages(); track message.id) {
+      <article
+        class="rounded-lg border px-4 py-3 shadow-2xl shadow-black/30 backdrop-blur-xl"
+        [ngClass]="toneClass(message)">
+        <div class="flex items-start gap-3">
+          <div class="mt-0.5 h-5 w-5 shrink-0">
+            @if (message.tone === 'loading') {
+              <span class="block h-4 w-4 rounded-full border-2 border-current border-t-transparent animate-spin"></span>
+            } @else {
+              <span class="block h-2.5 w-2.5 rounded-full bg-current mt-1.5 ml-1"></span>
+            }
+          </div>
+
+          <div class="min-w-0 flex-1">
+            <h3 class="text-xs font-bold uppercase tracking-wide">{{ message.title }}</h3>
+            @if (message.detail) {
+              <p class="mt-1 text-xs text-slate-200/80">{{ message.detail }}</p>
+            }
+
+            @if (message.actionLabel) {
+              <button
+                type="button"
+                class="mt-3 rounded-md border border-current/30 px-3 py-1 text-[11px] font-semibold uppercase transition-colors hover:bg-white/10"
+                (click)="runAction(message)">
+                {{ message.actionLabel }}
+              </button>
+            }
+          </div>
+
+          @if (!message.persistent) {
+            <button
+              type="button"
+              class="rounded-md px-1.5 text-sm leading-none opacity-70 transition-opacity hover:opacity-100"
+              aria-label="Cerrar notificacion"
+              (click)="dismiss(message)">
+              x
+            </button>
+          }
+        </div>
+      </article>
+    }
+  </section>
+}

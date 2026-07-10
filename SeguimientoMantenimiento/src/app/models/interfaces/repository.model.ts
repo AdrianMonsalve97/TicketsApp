@@ -3,4 +3,7 @@ export interface Repository {
   repositorio: string;
   link: string;
   descripcion?: string;
+  idRama?: string;
+  rama?: string;
+  idRamaTicket?: string;
 }

@@ -9,9 +9,9 @@
 
       <div class="flex gap-2 text-xs font-semibold text-slate-400 mt-2 uppercase tracking-wider relative z-20">
         <span>{{ ticket().idTicket }}</span>
-        @if (ticket().historiaUsuario) {
+        @if (ticket().nombreHu || ticket().historiaUsuario) {
           <span class="text-blue-400 border-l border-slate-700 pl-2 flex items-center">
-            <i class="pi pi-bookmark-fill text-[11px] mr-1"></i>{{ ticket().historiaUsuario }}
+            <i class="pi pi-bookmark-fill text-[11px] mr-1"></i>{{ ticket().nombreHu || ticket().historiaUsuario }}
           </span>
         }
       </div>

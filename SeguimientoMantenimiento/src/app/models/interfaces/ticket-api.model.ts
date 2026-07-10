@@ -17,6 +17,8 @@ export type BackendTicketEstado =
   | 'BUG'
   | 'Rollback';
 
+export type BackendTicketOrigen = 'SAIA' | 'GLPI';
+
 export interface TicketHistoryDto {
   estadoOrigen: BackendTicketEstado | 0 | null;
   estadoDestino: BackendTicketEstado;
@@ -31,10 +33,14 @@ export interface TicketDto {
   titulo: string;
   descripcion: string;
   ticketEstado: BackendTicketEstado;
-  origen: 'SAIA' | 'GLPI';
+  origen: BackendTicketOrigen;
   idUsuarioAsignado: number | null;
   causaRaiz?: string | null;
   solucionPropuesta?: string | null;
+  esDesarrollo: boolean;
+  nombreHu?: string | null;
+  urlHu?: string | null;
+  carpetaMedios?: string | null;
   fechaCreacion: string;
   fechaUltimaActualizacion?: string | null;
   activo: boolean;
@@ -44,10 +50,11 @@ export interface TicketDto {
 
 export interface CrearTicketRequestBody {
   codigoCaso: string;
-  origenTicket: 1 | 2;
+  origenTicket: BackendTicketOrigen | 1 | 2;
   titulo: string;
   descripcion: string;
   idUsuarioAsignado: number;
+  esDesarrollo?: boolean;
 }
 
 export interface ActualizarTicketRequestBody {
@@ -58,6 +65,10 @@ export interface ActualizarTicketRequestBody {
   causaRaiz?: string | null;
   solucionPropuesta?: string | null;
   comentario?: string | null;
+  esDesarrollo?: boolean | null;
+  nombreHu?: string | null;
+  urlHu?: string | null;
+  carpetaMedios?: string | null;
 }
 
 export function ticketStatusToBackend(status: TicketStatus): BackendTicketEstado {

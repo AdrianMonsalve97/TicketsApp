@@ -1,0 +1,95 @@
+:host {
+  display: block;
+}
+
+.crypto-glass-card {
+  background: rgba(255, 255, 255, 0.025);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.summary-card {
+  min-height: 112px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.025);
+  padding: 16px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.summary-card span {
+  display: block;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.summary-card strong {
+  display: block;
+  color: #f8fafc;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.1;
+  margin-top: 8px;
+}
+
+.summary-card p {
+  color: #94a3b8;
+  font-size: 11px;
+  line-height: 1.4;
+  margin: 8px 0 0;
+}
+
+.timeline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+}
+
+.timeline-list::before {
+  background: rgba(148, 163, 184, 0.12);
+  bottom: 8px;
+  content: '';
+  left: 5px;
+  position: absolute;
+  top: 8px;
+  width: 1px;
+}
+
+.timeline-item {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 12px 1fr;
+  position: relative;
+}
+
+.timeline-dot {
+  border-radius: 999px;
+  box-shadow: 0 0 14px currentColor;
+  height: 10px;
+  margin-top: 3px;
+  width: 10px;
+  z-index: 1;
+}
+
+.timeline-item strong {
+  color: #e2e8f0;
+  display: block;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.timeline-item p {
+  color: #94a3b8;
+  font-size: 11px;
+  line-height: 1.35;
+  margin: 3px 0 0;
+  overflow-wrap: anywhere;
+}

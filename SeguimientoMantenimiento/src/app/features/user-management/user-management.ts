@@ -13,6 +13,8 @@ import { ParametroService } from '../../core/services/parametro';
 import { Parametro } from '../../models/interfaces/parametro.model';
 import { canManageUsers } from '../../models/utils/role.utils';
 
+const CONTRASENA_TEMPORAL_BACKEND = 'Cambiar#2026';
+
 @Component({
   selector: 'app-user-management',
   imports: [CommonModule, FormsModule, Modal, DataTableComponent, LogoLoaderComponent],
@@ -129,7 +131,7 @@ export class UserManagementComponent implements OnInit {
           this.usuarios.update((list) => [created, ...list]);
           this.credencialesCreacion = {
             nombreUsuario: created.nombreUsuario,
-            contrasena: this.usuarioSeleccionado.password,
+            contrasena: CONTRASENA_TEMPORAL_BACKEND,
           };
           this.cerrarFormulario();
           this.modalCredencialesAbierto = true;
@@ -159,6 +161,33 @@ export class UserManagementComponent implements OnInit {
     void navigator.clipboard.writeText(valor);
   }
 
+  public onImagenPerfilSeleccionada(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = String(reader.result ?? '');
+      this.usuarioSeleccionado.imagenPerfilBase64 = result.includes(',')
+        ? result.split(',')[1]
+        : result;
+      this.usuarioSeleccionado.avatarUrl = this.previewImagenPerfil();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  public limpiarImagenPerfil(): void {
+    this.usuarioSeleccionado.imagenPerfilBase64 = null;
+    this.usuarioSeleccionado.avatarUrl = '';
+  }
+
+  public previewImagenPerfil(): string {
+    const imagen = this.usuarioSeleccionado.imagenPerfilBase64;
+    if (!imagen) return '';
+    return imagen.startsWith('data:') ? imagen : `data:image/png;base64,${imagen}`;
+  }
+
   private cerrarFormulario(): void {
     this.modalAbierto = false;
   }
@@ -169,23 +198,7 @@ export class UserManagementComponent implements OnInit {
     if (!String(this.usuarioSeleccionado.idUsuario ?? '').trim()) return 'El ID de usuario es obligatorio.';
     if (!Number(this.usuarioSeleccionado.idUsuario)) return 'El ID de usuario debe ser numérico.';
     if (!this.usuarioSeleccionado.rol) return 'Debes seleccionar un rol.';
-    if (!this.modoEdicion) {
-      const password = String(this.usuarioSeleccionado.password ?? '');
-      if (!password.trim()) return 'La contraseña inicial es obligatoria para crear el usuario.';
-      if (!this.esContrasenaValida(password)) {
-        return 'La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial.';
-      }
-    }
     return null;
-  }
-
-  private esContrasenaValida(contrasena: string): boolean {
-    return (
-      contrasena.length >= 8 &&
-      /[A-ZÁÉÍÓÚÑ]/.test(contrasena) &&
-      /\d/.test(contrasena) &&
-      /[^\p{L}\d\s]/u.test(contrasena)
-    );
   }
 
   private manejarError(error: any, fallback: string): void {
@@ -212,6 +225,7 @@ export class UserManagementComponent implements OnInit {
       apellidos: '',
       rol: Roles.Desarrollador,
       idArea: null,
+      imagenPerfilBase64: null,
       activo: true,
       password: '',
       debeCambiarContrasena: false,

@@ -48,6 +48,10 @@ export function canManageUsers(rol: Roles | null | undefined): boolean {
   return isPlanner(rol);
 }
 
+export function canManageApplications(rol: Roles | null | undefined): boolean {
+  return rol === Roles.Product_Owner || rol === Roles.Lider_Tecnico;
+}
+
 export function canAssignUsersOnCreate(rol: Roles | null | undefined): boolean {
   return isPlanner(rol);
 }
